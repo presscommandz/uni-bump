@@ -1,13 +1,13 @@
 import fsp from "fs/promises"
-import PlatformCommandController from "./platform/interface"
+import PlatformCommandController from "@platform/PlatformCommandController"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
 import {
-    RunCommandError,
+    CommandError,
     ConfigFileNotFoundError,
     InvalidConfigError
-} from "./errors"
+} from "@error"
 
 interface Config {
     platform: string
@@ -22,7 +22,7 @@ export default class CommandController {
         this.handlerMap.set(platform, handler)
     }
 
-    private handleError(error: RunCommandError) {
+    private handleError(error: CommandError) {
         const { message, errorCode } = error
         console.error(message)
         process.exit(errorCode)
@@ -45,19 +45,37 @@ export default class CommandController {
         return config as Config
     }
 
-    async execute() {
+    private async getPlatformFromConfigFile() {
         let configString: any
         try {
             configString = await fsp.readFile(this.configPath, "utf8")
         } catch (err) {
-            return this.handleError(new ConfigFileNotFoundError())
+            throw new ConfigFileNotFoundError()
         }
-        try {
-            const config = this.parseConfigFile(configString)
-            const handler = this.handlerMap.get(config.platform)
-            const program = yargs(hideBin(process.argv))
+        const config = this.parseConfigFile(configString)
+        return config.platform
+    }
 
-            program.options(handler.getOptions())
+    async execute() {
+        try {
+            const program = yargs(hideBin(process.argv))
+                .options({
+                    platform: {
+                        type: "string",
+                        choices: Array.from(this.handlerMap.keys())
+                    }
+                })
+                // Bypass help in current parse to use in next parse, when handler is called
+                .help(false)
+            // @ts-ignore
+            let platform = program.argv.platform
+
+            if (!platform) {
+                platform = await this.getPlatformFromConfigFile()
+            }
+
+            const handler = this.handlerMap.get(platform)
+            program.options(handler.getOptions()).help(true)
             handler.execute(program.argv)
         } catch (err) {
             return this.handleError(err)

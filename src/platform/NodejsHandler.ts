@@ -11,30 +11,46 @@ import {
     BumpVersionError,
     ExecutableNotFoundError,
     SubcommandError
-} from "../error/errors"
+} from "@error"
+import Utility from "@utility"
 
 export default class NodePlatformHandler implements PlatformCommandController {
     getOptions(): Record<string, Options> {
+        const conflictSwitches = [
+            "major",
+            "minor",
+            "patch",
+            "build",
+            "new-version"
+        ]
         return {
             major: {
                 type: "boolean",
-                conflicts: ["minor", "patch", "build"]
+                conflicts: Utility.omitFromArray(conflictSwitches, "major"),
+                describe: "Incrementing the major number of current version"
             },
             minor: {
                 type: "boolean",
-                conflicts: ["major", "patch", "build"]
+                conflicts: Utility.omitFromArray(conflictSwitches, "minor"),
+                describe: "Incrementing the minor number of current version"
             },
             patch: {
                 type: "boolean",
-                conflicts: ["major", "minor", "build"]
+                conflicts: Utility.omitFromArray(conflictSwitches, "patch"),
+                describe: "Incrementing the patch number of current version"
             },
             build: {
                 type: "boolean",
-                conflicts: ["major", "minor", "patch"]
+                conflicts: Utility.omitFromArray(conflictSwitches, "build"),
+                describe: "Incrementing the build number of current version"
             },
             "new-version": {
                 type: "string",
-                conflicts: ["major", "minor", "patch", "build"]
+                conflicts: Utility.omitFromArray(
+                    conflictSwitches,
+                    "new-version"
+                ),
+                describe: "Creates a new version specified by <version>"
             }
         }
     }

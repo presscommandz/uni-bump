@@ -1,4 +1,4 @@
-import type { Options } from "yargs"
+import { Options } from "yargs"
 
 export default interface PlatformCommandController {
     getOptions(): Record<string, Options>
