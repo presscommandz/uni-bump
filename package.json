@@ -4,7 +4,8 @@
     "description": "Universal bump semantic version",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "build": "tsc",
+        "prepublishOnly": "yarn build"
     },
     "repository": {
         "type": "git",
@@ -18,7 +19,7 @@
         "semantic-versioning"
     ],
     "bin": {
-        "unibump": "./lib/index.js"
+        "unibump": "./lib/src/index.js"
     },
     "author": "presscommandz",
     "license": "MIT",
@@ -30,9 +31,16 @@
         "registry": "https://npm.pkg.github.com/@presscommandz"
     },
     "devDependencies": {
+        "@types/node": "^16.4.7",
+        "@types/semver": "^7.3.8",
+        "@types/which": "^2.0.1",
+        "@types/yargs": "^17.0.2",
         "typescript": "^4.3.5"
     },
     "dependencies": {
-        "commander": "^8.1.0"
+        "build-number-generator": "^1.0.0",
+        "semver": "^7.3.5",
+        "which": "^2.0.2",
+        "yargs": "^17.0.1"
     }
 }

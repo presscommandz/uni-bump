@@ -185,3 +185,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# Output
+lib/

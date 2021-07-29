@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "module": "ES2015",
+        "module": "commonjs",
         "baseUrl": ".",
         "lib": ["es2019"],
         "allowJs": true,
@@ -10,7 +10,10 @@
         "importsNotUsedAsValues": "remove",
         "esModuleInterop": true,
         "moduleResolution": "node",
-        "outDir": "lib"
+        "outDir": "lib",
+        "resolveJsonModule": true,
+        "types": ["node"],
+        "removeComments": false
     },
     "include": ["src/**/*", "type/**/*"],
     "exclude": ["node_modules", "lib"]
