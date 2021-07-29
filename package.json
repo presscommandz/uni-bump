@@ -19,7 +19,7 @@
         "semantic-versioning"
     ],
     "bin": {
-        "unibump": "./lib/src/index.js"
+        "unibump": "./lib/index.js"
     },
     "author": "presscommandz",
     "license": "MIT",

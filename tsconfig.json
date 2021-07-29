@@ -12,6 +12,7 @@
             "@utility/*": ["src/utility/*"]
         },
         "allowJs": true,
+        "downlevelIteration": true,
         "forceConsistentCasingInFileNames": true,
         "allowSyntheticDefaultImports": true,
         "declaration": false,

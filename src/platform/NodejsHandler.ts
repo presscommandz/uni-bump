@@ -7,7 +7,12 @@ import * as buildNumGen from "build-number-generator"
 
 import { Options } from "yargs"
 import PlatformCommandController from "./PlatformCommandController"
-import { CommandError, ExecutableNotFoundError, SubcommandError } from "@error"
+import {
+    CommandError,
+    ExecutableNotFoundError,
+    SubcommandError,
+    ProjectRootNotFoundError
+} from "@error"
 import Utility from "@utility"
 
 export default class NodePlatformHandler implements PlatformCommandController {
@@ -51,21 +56,30 @@ export default class NodePlatformHandler implements PlatformCommandController {
         }
     }
 
-    private getNewBuildVersion(): string | never {
+    private static findProjectRoot(
+        startDirectory = process.cwd()
+    ): string | undefined {
+        for (let directory of Utility.walkUpPath(startDirectory)) {
+            if (fs.existsSync(path.join(directory, "package.json"))) {
+                return directory
+            }
+        }
+    }
+
+    private static getNewBuildVersion(): string | never {
+        const projectRoot = NodePlatformHandler.findProjectRoot()
+        if (!projectRoot) {
+            throw new ProjectRootNotFoundError(
+                "Cannot find project root to determine project version"
+            )
+        }
         let pkg
         try {
             pkg = JSON.parse(
-                fs.readFileSync(
-                    path.join(process.cwd(), "package.json"),
-                    "utf-8"
-                )
+                fs.readFileSync(path.join(projectRoot, "package.json"), "utf-8")
             )
         } catch (err) {
-            throw new CommandError(
-                "Cannot find `package.json` in current directory.",
-                undefined,
-                1
-            )
+            throw new ProjectRootNotFoundError("Cannot find `package.json`")
         }
 
         const version = semver.parse(pkg.version)
@@ -96,7 +110,7 @@ export default class NodePlatformHandler implements PlatformCommandController {
         } else if (option.patch) {
             yarnArgs.push("--patch")
         } else if (option.build) {
-            const newVersion = this.getNewBuildVersion()
+            const newVersion = NodePlatformHandler.getNewBuildVersion()
             yarnArgs.push("--new-version", newVersion)
         }
 
@@ -124,7 +138,7 @@ export default class NodePlatformHandler implements PlatformCommandController {
         } else if (option.patch) {
             npmArgs.push("patch")
         } else if (option.build) {
-            const newVersion = this.getNewBuildVersion()
+            const newVersion = NodePlatformHandler.getNewBuildVersion()
             npmArgs.push(newVersion)
         }
 
