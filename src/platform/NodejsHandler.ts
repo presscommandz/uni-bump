@@ -7,11 +7,7 @@ import * as buildNumGen from "build-number-generator"
 
 import { Options } from "yargs"
 import PlatformCommandController from "./PlatformCommandController"
-import {
-    BumpVersionError,
-    ExecutableNotFoundError,
-    SubcommandError
-} from "@error"
+import { CommandError, ExecutableNotFoundError, SubcommandError } from "@error"
 import Utility from "@utility"
 
 export default class NodePlatformHandler implements PlatformCommandController {
@@ -65,7 +61,7 @@ export default class NodePlatformHandler implements PlatformCommandController {
                 )
             )
         } catch (err) {
-            throw new BumpVersionError(
+            throw new CommandError(
                 "Cannot find `package.json` in current directory.",
                 undefined,
                 1
@@ -74,7 +70,7 @@ export default class NodePlatformHandler implements PlatformCommandController {
 
         const version = semver.parse(pkg.version)
         if (!version) {
-            throw new BumpVersionError(
+            throw new CommandError(
                 "Cannot understand current version semantic.",
                 undefined,
                 -1
@@ -137,11 +133,7 @@ export default class NodePlatformHandler implements PlatformCommandController {
         })
         command.on("close", code => {
             if (code != 0) {
-                throw new BumpVersionError(
-                    "Command run unsuccessful",
-                    undefined,
-                    code
-                )
+                throw new SubcommandError("Command run unsuccessful")
             }
         })
     }

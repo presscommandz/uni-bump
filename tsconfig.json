@@ -3,6 +3,14 @@
         "module": "commonjs",
         "baseUrl": ".",
         "lib": ["es2019"],
+        "paths": {
+            "@error": ["src/error"],
+            "@error/*": ["src/error/*"],
+            "@platform": ["src/platform"],
+            "@platform/*": ["src/platform/*"],
+            "@utility": ["src/utility"],
+            "@utility/*": ["src/utility/*"]
+        },
         "allowJs": true,
         "forceConsistentCasingInFileNames": true,
         "allowSyntheticDefaultImports": true,
