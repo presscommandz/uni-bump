@@ -66,6 +66,7 @@ export default class CommandController {
                     }
                 })
                 // Bypass help in current parse to use in next parse, when handler is called
+                // TODO: Manually write help text
                 .help(false)
             // @ts-ignore
             let platform = program.argv.platform
