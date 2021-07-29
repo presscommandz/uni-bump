@@ -1,1 +1,1 @@
-export { default as NodePlatformHandler } from "./node"
+export { default as NodePlatformHandler } from "./NodejsHandler"

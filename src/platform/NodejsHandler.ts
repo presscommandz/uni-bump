@@ -6,8 +6,12 @@ import which from "which"
 import * as buildNumGen from "build-number-generator"
 
 import { Options } from "yargs"
-import PlatformCommandController from "./interface"
-import { RunCommandError, ExecutableNotFoundError } from "../errors"
+import PlatformCommandController from "./PlatformCommandController"
+import {
+    BumpVersionError,
+    ExecutableNotFoundError,
+    SubcommandError
+} from "../error/errors"
 
 export default class NodePlatformHandler implements PlatformCommandController {
     getOptions(): Record<string, Options> {
@@ -45,7 +49,7 @@ export default class NodePlatformHandler implements PlatformCommandController {
                 )
             )
         } catch (err) {
-            throw new RunCommandError(
+            throw new BumpVersionError(
                 "Cannot find `package.json` in current directory.",
                 undefined,
                 1
@@ -54,7 +58,7 @@ export default class NodePlatformHandler implements PlatformCommandController {
 
         const version = semver.parse(pkg.version)
         if (!version) {
-            throw new RunCommandError(
+            throw new BumpVersionError(
                 "Cannot understand current version semantic.",
                 undefined,
                 -1
@@ -89,11 +93,7 @@ export default class NodePlatformHandler implements PlatformCommandController {
         })
         command.on("close", code => {
             if (code != 0) {
-                throw new RunCommandError(
-                    "Command run unsuccessful",
-                    undefined,
-                    code
-                )
+                throw new SubcommandError("Command run unsuccessful")
             }
         })
     }
@@ -121,7 +121,7 @@ export default class NodePlatformHandler implements PlatformCommandController {
         })
         command.on("close", code => {
             if (code != 0) {
-                throw new RunCommandError(
+                throw new BumpVersionError(
                     "Command run unsuccessful",
                     undefined,
                     code

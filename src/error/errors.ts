@@ -1,10 +1,6 @@
-const enum ErrorCode {
-    ConfigFileNotFoundError = 1,
-    InvalidConfigError = 2,
-    ExecutableNotFoundError = 3
-}
+import ErrorCode from "./ErrorCode"
 
-export class RunCommandError extends Error {
+export class BumpVersionError extends Error {
     readonly errorCode: number
 
     constructor(message?: string, name?: string, errorCode?: number) {
@@ -14,7 +10,7 @@ export class RunCommandError extends Error {
     }
 }
 
-export class ConfigFileNotFoundError extends RunCommandError {
+export class ConfigFileNotFoundError extends BumpVersionError {
     constructor(message = "Config file not found") {
         super(
             message,
@@ -24,18 +20,24 @@ export class ConfigFileNotFoundError extends RunCommandError {
     }
 }
 
-export class InvalidConfigError extends RunCommandError {
+export class InvalidConfigError extends BumpVersionError {
     constructor(message = "Config file is not valid") {
         super(message, "InvalidConfigError", ErrorCode.InvalidConfigError)
     }
 }
 
-export class ExecutableNotFoundError extends RunCommandError {
-    constructor(message) {
+export class ExecutableNotFoundError extends BumpVersionError {
+    constructor(message: string) {
         super(
             message,
             "ExecutableNotFoundError",
             ErrorCode.ExecutableNotFoundError
         )
+    }
+}
+
+export class SubcommandError extends BumpVersionError {
+    constructor(message = "Run bump version command failed") {
+        super(message, "SubcommandError", ErrorCode.SubcommandError)
     }
 }
