@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "module": "ES2015",
+        "baseUrl": ".",
+        "lib": ["es2019"],
+        "allowJs": true,
+        "forceConsistentCasingInFileNames": true,
+        "allowSyntheticDefaultImports": true,
+        "declaration": false,
+        "importsNotUsedAsValues": "remove",
+        "esModuleInterop": true,
+        "moduleResolution": "node",
+        "outDir": "lib"
+    },
+    "include": ["src/**/*", "type/**/*"],
+    "exclude": ["node_modules", "lib"]
+}
