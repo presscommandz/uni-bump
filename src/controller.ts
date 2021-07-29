@@ -1,5 +1,5 @@
 import fsp from "fs/promises"
-import PlatformCommandController from "./platform/base"
+import PlatformCommandController from "./platform/interface"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
