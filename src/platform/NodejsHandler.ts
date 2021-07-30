@@ -5,7 +5,7 @@ import semver from "semver"
 import which from "which"
 import * as buildNumGen from "build-number-generator"
 
-import { Options } from "yargs"
+import { Option } from "commander"
 import PlatformCommandProvider from "@platform/PlatformCommandProvider"
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
 import {
@@ -18,49 +18,29 @@ import {
 import Utility from "@utility"
 
 export default class NodeProvider implements PlatformCommandProvider {
-    getOptions(): Record<string, Options> {
-        return {
-            [BumpSwitchTypes.major]: {
-                type: "boolean",
-                conflicts: Utility.omitFromArray(
-                    Object.values(BumpSwitchTypes),
-                    BumpSwitchTypes.major
-                ),
-                describe: "Incrementing the major number of current version"
-            },
-            [BumpSwitchTypes.minor]: {
-                type: "boolean",
-                conflicts: Utility.omitFromArray(
-                    Object.values(BumpSwitchTypes),
-                    BumpSwitchTypes.minor
-                ),
-                describe: "Incrementing the minor number of current version"
-            },
-            [BumpSwitchTypes.patch]: {
-                type: "boolean",
-                conflicts: Utility.omitFromArray(
-                    Object.values(BumpSwitchTypes),
-                    BumpSwitchTypes.patch
-                ),
-                describe: "Incrementing the patch number of current version"
-            },
-            [BumpSwitchTypes.build]: {
-                type: "boolean",
-                conflicts: Utility.omitFromArray(
-                    Object.values(BumpSwitchTypes),
-                    BumpSwitchTypes.build
-                ),
-                describe: "Incrementing the build number of current version"
-            },
-            [BumpSwitchTypes.newVersion]: {
-                type: "string",
-                conflicts: Utility.omitFromArray(
-                    Object.values(BumpSwitchTypes),
-                    BumpSwitchTypes.newVersion
-                ),
-                describe: "Creates a new version specified by <version>"
-            }
-        }
+    getOptions(): Option[] {
+        return [
+            new Option(
+                BumpSwitchTypes.major,
+                "Incrementing the major number of current version"
+            ),
+            new Option(
+                BumpSwitchTypes.minor,
+                "Incrementing the minor number of current version"
+            ),
+            new Option(
+                BumpSwitchTypes.patch,
+                "Incrementing the patch number of current version"
+            ),
+            new Option(
+                BumpSwitchTypes.build,
+                "Incrementing the build number of current version"
+            ),
+            new Option(
+                BumpSwitchTypes.newVersion,
+                "Creates a new version specified by <version>"
+            )
+        ]
     }
 
     private static findProjectRoot(

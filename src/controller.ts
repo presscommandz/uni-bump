@@ -1,7 +1,6 @@
 import fsp from "fs/promises"
 import { PlatformCommandProvider } from "@platform"
-import yargs from "yargs"
-import { hideBin } from "yargs/helpers"
+import { Command, Option } from "commander"
 
 import { CommandError, InvalidConfigError } from "@model/error"
 import Platform from "@platform/Platform"
@@ -49,18 +48,18 @@ export default class CommandController {
 
     async execute() {
         try {
-            const program = yargs(hideBin(process.argv))
-                .options({
-                    platform: {
-                        type: "string",
-                        choices: Array.from(this.handlerMap.keys())
-                    }
-                })
+            const program = new Command()
+                .addOption(
+                    new Option("--platform <platform>").choices(
+                        Array.from(this.handlerMap.keys())
+                    )
+                )
                 // Bypass help in current parse to use in next parse, when handler is called
                 // TODO: Manually write help text
-                .help(false)
-            // @ts-ignore
-            let platform = program.argv.platform
+                .allowUnknownOption(true)
+                .helpOption(false)
+
+            let platform = program.parse().opts().platform
 
             if (!platform) {
                 platform =
@@ -69,8 +68,9 @@ export default class CommandController {
             }
 
             const handler = this.handlerMap.get(platform)
-            program.options(handler.getOptions()).help(true)
-            handler.execute(program.argv)
+            handler.getOptions().forEach(option => program.addOption(option))
+            program.allowUnknownOption(false).helpOption(true)
+            handler.execute(program.parse().opts())
         } catch (err) {
             return this.handleError(err)
         }

@@ -1,6 +1,6 @@
-import { Options } from "yargs"
+import { Option } from "commander"
 
 export default interface PlatformCommandProvider {
-    getOptions(): Record<string, Options>
+    getOptions(): Option[]
     execute(option: any): void | Promise<void>
 }
