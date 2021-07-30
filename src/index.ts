@@ -6,18 +6,19 @@ import {
     PlatformCommandProvider,
     NodePlatformHandler,
     FastlaneHandler
-} from "./platform"
+} from "@platform"
+import Platform from "@platform/Platform"
 
 const defaultConfigPath = path.join(process.cwd(), "bumpversion.json")
 
-const handlers: Record<string, PlatformCommandProvider> = {
-    node: new NodePlatformHandler(),
-    fastlane: new FastlaneHandler()
-}
+const handlers = new Map<Platform, PlatformCommandProvider>([
+    [Platform.node, new NodePlatformHandler()],
+    [Platform.fastlane, new FastlaneHandler()]
+])
 
 const controller = new CommandController(defaultConfigPath)
 
-Object.entries(handlers).forEach(([platform, handler]) =>
+handlers.forEach((handler, platform) =>
     controller.addHandler(platform, handler)
 )
 

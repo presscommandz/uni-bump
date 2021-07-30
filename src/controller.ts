@@ -3,22 +3,20 @@ import { PlatformCommandProvider } from "@platform"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
-import {
-    CommandError,
-    ConfigFileNotFoundError,
-    InvalidConfigError
-} from "@error"
+import { CommandError, InvalidConfigError } from "@error"
+import Platform from "@platform/Platform"
 
 interface Config {
-    platform: string
+    platform?: string
 }
 
 export default class CommandController {
-    private handlerMap = new Map<string, PlatformCommandProvider>()
+    private handlerMap = new Map<Platform, PlatformCommandProvider>()
+    private readonly defaultPlatform = Platform.node
 
     constructor(private readonly configPath: string) {}
 
-    addHandler(platform: string, handler: PlatformCommandProvider) {
+    addHandler(platform: Platform, handler: PlatformCommandProvider) {
         this.handlerMap.set(platform, handler)
     }
 
@@ -28,18 +26,11 @@ export default class CommandController {
         process.exit(errorCode)
     }
 
-    private isConfigValid(config: any): boolean {
-        return this.handlerMap.has(config.platform)
-    }
-
-    private parseConfigFile(configString: string): Config | never {
+    private parseConfigFile(configString: string): Config {
         let config: any
         try {
             config = JSON.parse(configString)
         } catch (err) {
-            throw new InvalidConfigError("Cannot parse config file")
-        }
-        if (!this.isConfigValid(config)) {
             throw new InvalidConfigError()
         }
         return config as Config
@@ -50,7 +41,7 @@ export default class CommandController {
         try {
             configString = await fsp.readFile(this.configPath, "utf8")
         } catch (err) {
-            throw new ConfigFileNotFoundError()
+            return this.defaultPlatform
         }
         const config = this.parseConfigFile(configString)
         return config.platform
@@ -72,7 +63,9 @@ export default class CommandController {
             let platform = program.argv.platform
 
             if (!platform) {
-                platform = await this.getPlatformFromConfigFile()
+                platform =
+                    (await this.getPlatformFromConfigFile()) ||
+                    this.defaultPlatform
             }
 
             const handler = this.handlerMap.get(platform)
