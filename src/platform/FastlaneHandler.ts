@@ -30,6 +30,14 @@ export default class FastlaneProvider implements PlatformCommandProvider {
                 ),
                 describe: "Incrementing the minor number of current version"
             },
+            [BumpSwitchTypes.build]: {
+                type: "boolean",
+                conflicts: Utility.omitFromArray(
+                    Object.values(BumpSwitchTypes),
+                    BumpSwitchTypes.build
+                ),
+                describe: "Incrementing the patch number of current version"
+            },
             [BumpSwitchTypes.patch]: {
                 type: "boolean",
                 conflicts: Utility.omitFromArray(
@@ -53,16 +61,21 @@ export default class FastlaneProvider implements PlatformCommandProvider {
         if (!which.sync("fastlane")) {
             throw new ExecutableNotFoundError("`fastlane` must be installed")
         }
-        let fastlaneArgs: string[] = ["run", "increment_version_number"]
+        let fastlaneArgs: string[] = ["run"]
 
         if (option.major) {
-            fastlaneArgs.push("bump_type:major")
+            fastlaneArgs.push("increment_version_number", "bump_type:major")
         } else if (option.minor) {
-            fastlaneArgs.push("bump_type:minor")
+            fastlaneArgs.push("increment_version_number", "bump_type:minor")
         } else if (option.patch) {
-            fastlaneArgs.push("bump_type:patch")
+            fastlaneArgs.push("increment_version_number", "bump_type:patch")
+        } else if (option.build) {
+            fastlaneArgs.push("increment_build_number")
         } else if (option.newVersion) {
-            fastlaneArgs.push(`version_number:${option.newVersion}`)
+            fastlaneArgs.push(
+                "increment_version_number",
+                `version_number:${option.newVersion}`
+            )
         } else {
             throw new ArgumentError("One of the bump type must be specified.")
         }
