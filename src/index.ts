@@ -4,6 +4,7 @@ import path from "path"
 import CommandController from "./Controller"
 import {
     PlatformCommandProvider,
+    AppleGenericVersioningProvider,
     NodePlatformHandler,
     FastlaneHandler
 } from "@platform"
@@ -13,7 +14,8 @@ const defaultConfigPath = path.join(process.cwd(), "bumpversion.json")
 
 const handlers = new Map<Platform, PlatformCommandProvider>([
     [Platform.node, new NodePlatformHandler()],
-    [Platform.fastlane, new FastlaneHandler()]
+    [Platform.fastlane, new FastlaneHandler()],
+    [Platform.agvtool, new AppleGenericVersioningProvider()]
 ])
 
 const controller = new CommandController(defaultConfigPath)

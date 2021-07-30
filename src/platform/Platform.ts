@@ -1,6 +1,7 @@
 const enum Platform {
     node = "node",
-    fastlane = "fastlane"
+    fastlane = "fastlane",
+    agvtool = "agvtool"
 }
 
 export default Platform
