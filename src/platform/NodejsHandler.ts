@@ -121,6 +121,8 @@ export default class NodeProvider implements PlatformCommandProvider {
             yarnArgs.push("--new-version", newVersion)
         } else if (option.newVersion) {
             yarnArgs.push("--new-version", option.newVersion)
+        } else {
+            throw new ArgumentError("One of the bump type must be specified.")
         }
 
         const command = spawn("yarn", yarnArgs, {
@@ -151,6 +153,8 @@ export default class NodeProvider implements PlatformCommandProvider {
             npmArgs.push(newVersion)
         } else if (option.newVersion) {
             npmArgs.push(option.newVersion)
+        } else {
+            throw new ArgumentError("One of the bump type must be specified.")
         }
 
         const command = spawn("npm", npmArgs, {

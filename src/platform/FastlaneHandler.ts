@@ -4,7 +4,11 @@ import which from "which"
 import { Options } from "yargs"
 import PlatformCommandProvider from "@platform/PlatformCommandProvider"
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
-import { ExecutableNotFoundError, SubcommandError } from "@model/error"
+import {
+    ArgumentError,
+    ExecutableNotFoundError,
+    SubcommandError
+} from "@model/error"
 import Utility from "@utility"
 
 export default class FastlaneProvider implements PlatformCommandProvider {
@@ -59,6 +63,8 @@ export default class FastlaneProvider implements PlatformCommandProvider {
             fastlaneArgs.push('bump_type:"patch"')
         } else if (option.newVersion) {
             fastlaneArgs.push(`version_number:"${option.newVersion}"`)
+        } else {
+            throw new ArgumentError("One of the bump type must be specified.")
         }
 
         const command = spawn("fastlane", fastlaneArgs, {
