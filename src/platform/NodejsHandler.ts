@@ -3,10 +3,10 @@ import fs from "fs"
 import path from "path"
 import semver, { SemVer } from "semver"
 import which from "which"
-import * as buildNumGen from "build-number-generator"
 
 import { Option } from "commander"
 import ArgumentParser from "../ArgumentParser"
+import SemVerHandler from "../SemVerHandler"
 import PlatformCommandProvider from "@platform/PlatformCommandProvider"
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
 import {
@@ -81,59 +81,34 @@ export default class NodeProvider implements PlatformCommandProvider {
         return version
     }
 
-    private increaseSemverMainComponent(
-        version: SemVer,
-        type: "major" | "minor" | "patch",
-        value: number | boolean
-    ): SemVer {
-        if (typeof value === "boolean") {
-            version.inc(type)
-        } else {
-            version[type] = value
-        }
-        return version
-    }
-
-    private increaseBuildVersion(
-        version: SemVer,
-        value: string | boolean
-    ): SemVer {
-        let newBuildNumber: string[]
-        if (typeof value == "boolean") {
-            newBuildNumber = [buildNumGen.generate()]
-        } else {
-            newBuildNumber = [value]
-        }
-        version.build = newBuildNumber
-        return version
-    }
-
-    private handleIncreaseOrSetVersion(
-        type: "major" | "minor" | "patch" | "build",
-        value: string | number | boolean
-    ): SemVer {
-        const version = NodeProvider.getProjectVersion()
-        const semverReleaseType = ["major", "minor", "patch"]
-        if (semverReleaseType.includes(type)) {
-            // @ts-ignore
-            return this.increaseSemverMainComponent(version, type, value)
-        } else {
-            // @ts-ignore
-            return this.increaseBuildVersion(version, value)
-        }
-    }
-
     execute(option: any) {
         let newVersion: SemVer
+        const version = NodeProvider.getProjectVersion()
 
         if (option.major) {
-            newVersion = this.handleIncreaseOrSetVersion("major", option.major)
+            newVersion = SemVerHandler.bumpVersion(
+                version,
+                "major",
+                option.major
+            )
         } else if (option.minor) {
-            newVersion = this.handleIncreaseOrSetVersion("minor", option.minor)
+            newVersion = SemVerHandler.bumpVersion(
+                version,
+                "minor",
+                option.minor
+            )
         } else if (option.patch) {
-            newVersion = this.handleIncreaseOrSetVersion("patch", option.patch)
+            newVersion = SemVerHandler.bumpVersion(
+                version,
+                "patch",
+                option.patch
+            )
         } else if (option.build) {
-            newVersion = this.handleIncreaseOrSetVersion("build", option.build)
+            newVersion = SemVerHandler.bumpVersion(
+                version,
+                "build",
+                option.build
+            )
         } else if (option.newVersion) {
             newVersion = option.newVersion
         } else {

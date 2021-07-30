@@ -13,7 +13,7 @@ export default class ArgumentParser {
         return parsed
     }
 
-    static parseVersionArgument(value: string, _prev: any) {
+    static parseVersionArgument(value: string, _prev: any): SemVer {
         const parsed = semver.parse(value)
         if (parsed == null) {
             throw new ArgumentError("Version is invalid")
