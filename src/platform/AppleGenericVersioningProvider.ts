@@ -11,7 +11,8 @@ import {
     CommandError,
     ArgumentError,
     ExecutableNotFoundError,
-    SubcommandError
+    SubcommandError,
+    VersionNotFoundError
 } from "@model/error"
 import Utility from "@utility"
 
@@ -45,6 +46,9 @@ export default class AppleGenericVersioningProvider
 
     private static getProjectVersion(): semver.SemVer | never {
         const command = spawnSync("xcrun", ["agvtool", "what-version"])
+        if (command.error) {
+            throw new VersionNotFoundError("Cannot find project version")
+        }
         const output = command.stdout.split("\n").filter(line => line)
         const versionString = output[output.length - 1].trim()
         const version = semver.parse(versionString)

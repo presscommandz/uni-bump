@@ -14,7 +14,7 @@ import {
     ArgumentError,
     ExecutableNotFoundError,
     SubcommandError,
-    ProjectRootNotFoundError
+    VersionNotFoundError
 } from "@model/error"
 import Utility from "@utility"
 
@@ -57,7 +57,7 @@ export default class NodeProvider implements PlatformCommandProvider {
     private static getProjectVersion(): semver.SemVer | never {
         const projectRoot = NodeProvider.findProjectRoot()
         if (!projectRoot) {
-            throw new ProjectRootNotFoundError(
+            throw new VersionNotFoundError(
                 "Cannot find project root to determine project version"
             )
         }
@@ -67,7 +67,7 @@ export default class NodeProvider implements PlatformCommandProvider {
                 fs.readFileSync(path.join(projectRoot, "package.json"), "utf-8")
             )
         } catch (err) {
-            throw new ProjectRootNotFoundError("Cannot find `package.json`")
+            throw new VersionNotFoundError("Cannot find `package.json`")
         }
 
         const version = semver.parse(pkg.version)

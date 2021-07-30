@@ -4,7 +4,7 @@ const enum ErrorCode {
     ConfigFileNotFoundError,
     InvalidConfigError,
     ExecutableNotFoundError,
-    ProjectRootNotFoundError
+    VersionNotFoundError
 }
 
 export default ErrorCode
