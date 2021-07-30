@@ -4,10 +4,10 @@
         "baseUrl": ".",
         "lib": ["es2019"],
         "paths": {
-            "@error": ["src/error"],
-            "@error/*": ["src/error/*"],
             "@platform": ["src/platform"],
             "@platform/*": ["src/platform/*"],
+            "@model": ["src/model"],
+            "@model/*": ["src/model/*"],
             "@utility": ["src/utility"],
             "@utility/*": ["src/utility/*"]
         },

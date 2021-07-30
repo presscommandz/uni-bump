@@ -3,47 +3,42 @@ import which from "which"
 
 import { Options } from "yargs"
 import PlatformCommandProvider from "@platform/PlatformCommandProvider"
+import BumpSwitchTypes from "@model/BumpSwitchTypes"
+import { ExecutableNotFoundError, SubcommandError } from "@model/error"
 import Utility from "@utility"
-import { ExecutableNotFoundError, SubcommandError } from "@error"
 
 export default class FastlaneProvider implements PlatformCommandProvider {
     getOptions(): Record<string, Options> {
-        enum BumpTypeSwitches {
-            major = "major",
-            minor = "minor",
-            patch = "patch",
-            newVersion = "new-version"
-        }
         return {
-            [BumpTypeSwitches.major]: {
+            [BumpSwitchTypes.major]: {
                 type: "boolean",
                 conflicts: Utility.omitFromArray(
-                    Object.values(BumpTypeSwitches),
-                    BumpTypeSwitches.major
+                    Object.values(BumpSwitchTypes),
+                    BumpSwitchTypes.major
                 ),
                 describe: "Incrementing the major number of current version"
             },
-            [BumpTypeSwitches.minor]: {
+            [BumpSwitchTypes.minor]: {
                 type: "boolean",
                 conflicts: Utility.omitFromArray(
-                    Object.values(BumpTypeSwitches),
-                    BumpTypeSwitches.minor
+                    Object.values(BumpSwitchTypes),
+                    BumpSwitchTypes.minor
                 ),
                 describe: "Incrementing the minor number of current version"
             },
-            [BumpTypeSwitches.patch]: {
+            [BumpSwitchTypes.patch]: {
                 type: "boolean",
                 conflicts: Utility.omitFromArray(
-                    Object.values(BumpTypeSwitches),
-                    BumpTypeSwitches.patch
+                    Object.values(BumpSwitchTypes),
+                    BumpSwitchTypes.patch
                 ),
                 describe: "Incrementing the patch number of current version"
             },
-            [BumpTypeSwitches.newVersion]: {
+            [BumpSwitchTypes.newVersion]: {
                 type: "string",
                 conflicts: Utility.omitFromArray(
-                    Object.values(BumpTypeSwitches),
-                    BumpTypeSwitches.newVersion
+                    Object.values(BumpSwitchTypes),
+                    BumpSwitchTypes.newVersion
                 ),
                 describe: "Creates a new version specified by <version>"
             }

@@ -3,7 +3,7 @@ import { PlatformCommandProvider } from "@platform"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
-import { CommandError, InvalidConfigError } from "@error"
+import { CommandError, InvalidConfigError } from "@model/error"
 import Platform from "@platform/Platform"
 
 interface Config {
