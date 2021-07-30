@@ -8,28 +8,42 @@ import { ExecutableNotFoundError, SubcommandError } from "@error"
 
 export default class FastlaneProvider implements PlatformCommandProvider {
     getOptions(): Record<string, Options> {
-        const conflictSwitches = ["major", "minor", "patch", "new-version"]
+        enum BumpTypeSwitches {
+            major = "major",
+            minor = "minor",
+            patch = "patch",
+            newVersion = "new-version"
+        }
         return {
-            major: {
+            [BumpTypeSwitches.major]: {
                 type: "boolean",
-                conflicts: Utility.omitFromArray(conflictSwitches, "major"),
+                conflicts: Utility.omitFromArray(
+                    Object.values(BumpTypeSwitches),
+                    BumpTypeSwitches.major
+                ),
                 describe: "Incrementing the major number of current version"
             },
-            minor: {
+            [BumpTypeSwitches.minor]: {
                 type: "boolean",
-                conflicts: Utility.omitFromArray(conflictSwitches, "minor"),
+                conflicts: Utility.omitFromArray(
+                    Object.values(BumpTypeSwitches),
+                    BumpTypeSwitches.minor
+                ),
                 describe: "Incrementing the minor number of current version"
             },
-            patch: {
+            [BumpTypeSwitches.patch]: {
                 type: "boolean",
-                conflicts: Utility.omitFromArray(conflictSwitches, "patch"),
+                conflicts: Utility.omitFromArray(
+                    Object.values(BumpTypeSwitches),
+                    BumpTypeSwitches.patch
+                ),
                 describe: "Incrementing the patch number of current version"
             },
-            "new-version": {
+            [BumpTypeSwitches.newVersion]: {
                 type: "string",
                 conflicts: Utility.omitFromArray(
-                    conflictSwitches,
-                    "new-version"
+                    Object.values(BumpTypeSwitches),
+                    BumpTypeSwitches.newVersion
                 ),
                 describe: "Creates a new version specified by <version>"
             }
