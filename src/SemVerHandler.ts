@@ -28,6 +28,9 @@ export default class SemVerHandler {
         if (typeof value === "boolean") {
             version.inc(type)
         } else {
+            // Reset all lower components
+            version.inc(type)
+            version.build = []
             version[type] = value
         }
         return version

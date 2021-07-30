@@ -12,7 +12,7 @@ import {
     SubcommandError,
     VersionNotFoundError
 } from "@model/error"
-import SemVerHandler from "src/SemVerHandler"
+import SemVerHandler from "../SemVerHandler"
 import Utility from "@utility"
 
 export default class FastlaneProvider implements PlatformCommandProvider {
