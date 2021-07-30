@@ -56,13 +56,13 @@ export default class FastlaneProvider implements PlatformCommandProvider {
         let fastlaneArgs: string[] = ["run", "increment_version_number"]
 
         if (option.major) {
-            fastlaneArgs.push('bump_type:"major"')
+            fastlaneArgs.push("bump_type:major")
         } else if (option.minor) {
-            fastlaneArgs.push('bump_type:"minor"')
+            fastlaneArgs.push("bump_type:minor")
         } else if (option.patch) {
-            fastlaneArgs.push('bump_type:"patch"')
+            fastlaneArgs.push("bump_type:patch")
         } else if (option.newVersion) {
-            fastlaneArgs.push(`version_number:"${option.newVersion}"`)
+            fastlaneArgs.push(`version_number:${option.newVersion}`)
         } else {
             throw new ArgumentError("One of the bump type must be specified.")
         }
