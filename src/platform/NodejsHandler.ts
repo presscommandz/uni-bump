@@ -1,11 +1,12 @@
 import { spawn } from "child_process"
 import fs from "fs"
 import path from "path"
-import semver from "semver"
+import semver, { SemVer } from "semver"
 import which from "which"
 import * as buildNumGen from "build-number-generator"
 
 import { Option } from "commander"
+import ArgumentParser from "../ArgumentParser"
 import PlatformCommandProvider from "@platform/PlatformCommandProvider"
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
 import {
@@ -23,15 +24,15 @@ export default class NodeProvider implements PlatformCommandProvider {
             new Option(
                 BumpSwitchTypes.major,
                 "Incrementing the major number of current version"
-            ),
+            ).argParser(ArgumentParser.parseIntOrBooleanArgument),
             new Option(
                 BumpSwitchTypes.minor,
                 "Incrementing the minor number of current version"
-            ),
+            ).argParser(ArgumentParser.parseIntOrBooleanArgument),
             new Option(
                 BumpSwitchTypes.patch,
                 "Incrementing the patch number of current version"
-            ),
+            ).argParser(ArgumentParser.parseIntOrBooleanArgument),
             new Option(
                 BumpSwitchTypes.build,
                 "Incrementing the build number of current version"
@@ -39,7 +40,7 @@ export default class NodeProvider implements PlatformCommandProvider {
             new Option(
                 BumpSwitchTypes.newVersion,
                 "Creates a new version specified by <version>"
-            )
+            ).argParser(ArgumentParser.parseVersionArgument)
         ]
     }
 
@@ -53,7 +54,7 @@ export default class NodeProvider implements PlatformCommandProvider {
         }
     }
 
-    private static getNewBuildVersion(): string | never {
+    private static getProjectVersion(): semver.SemVer | never {
         const projectRoot = NodeProvider.findProjectRoot()
         if (!projectRoot) {
             throw new ProjectRootNotFoundError(
@@ -77,83 +78,101 @@ export default class NodeProvider implements PlatformCommandProvider {
                 -1
             )
         }
-        const newVersion = `${version.major}.${version.minor}.${
-            version.patch
-        }+${buildNumGen.generate()}`
-        return newVersion
+        return version
     }
 
-    private executeUsingYarn(option) {
-        let yarnArgs: string[] = [
-            "version",
-            "--no-git-tag-version",
-            "--no-commit-hooks"
-        ]
-
-        if (option.major) {
-            yarnArgs.push("--major")
-        } else if (option.minor) {
-            yarnArgs.push("--minor")
-        } else if (option.patch) {
-            yarnArgs.push("--patch")
-        } else if (option.build) {
-            const newVersion = NodeProvider.getNewBuildVersion()
-            yarnArgs.push("--new-version", newVersion)
-        } else if (option.newVersion) {
-            yarnArgs.push("--new-version", option.newVersion)
+    private increaseSemverMainComponent(
+        version: SemVer,
+        type: "major" | "minor" | "patch",
+        value: number | boolean
+    ): SemVer {
+        if (typeof value === "boolean") {
+            version.inc(type)
         } else {
-            throw new ArgumentError("One of the bump type must be specified.")
+            version[type] = value
         }
-
-        const command = spawn("yarn", yarnArgs, {
-            stdio: "inherit"
-        })
-        command.on("close", code => {
-            if (code != 0) {
-                throw new SubcommandError("Command run unsuccessful")
-            }
-        })
+        return version
     }
 
-    private executeUsingNpm(option) {
-        let npmArgs: string[] = [
-            "version",
-            "--no-git-tag-version",
-            "--no-commit-hooks"
-        ]
-
-        if (option.major) {
-            npmArgs.push("major")
-        } else if (option.minor) {
-            npmArgs.push("minor")
-        } else if (option.patch) {
-            npmArgs.push("patch")
-        } else if (option.build) {
-            const newVersion = NodeProvider.getNewBuildVersion()
-            npmArgs.push(newVersion)
-        } else if (option.newVersion) {
-            npmArgs.push(option.newVersion)
+    private increaseBuildVersion(
+        version: SemVer,
+        value: string | boolean
+    ): SemVer {
+        let newBuildNumber: string[]
+        if (typeof value == "boolean") {
+            newBuildNumber = [buildNumGen.generate()]
         } else {
-            throw new ArgumentError("One of the bump type must be specified.")
+            newBuildNumber = [value]
         }
+        version.build = newBuildNumber
+        return version
+    }
 
-        const command = spawn("npm", npmArgs, {
-            stdio: "inherit"
-        })
-        command.on("close", code => {
-            if (code != 0) {
-                throw new SubcommandError("Command run unsuccessful")
-            }
-        })
+    private handleIncreaseOrSetVersion(
+        type: "major" | "minor" | "patch" | "build",
+        value: string | number | boolean
+    ): SemVer {
+        const version = NodeProvider.getProjectVersion()
+        const semverReleaseType = ["major", "minor", "patch"]
+        if (semverReleaseType.includes(type)) {
+            // @ts-ignore
+            return this.increaseSemverMainComponent(version, type, value)
+        } else {
+            // @ts-ignore
+            return this.increaseBuildVersion(version, value)
+        }
     }
 
     execute(option: any) {
-        if (which.sync("yarn")) {
-            return this.executeUsingYarn(option)
-        } else if (which.sync("npm")) {
-            return this.executeUsingNpm(option)
+        let newVersion: SemVer
+
+        if (option.major) {
+            newVersion = this.handleIncreaseOrSetVersion("major", option.major)
+        } else if (option.minor) {
+            newVersion = this.handleIncreaseOrSetVersion("minor", option.minor)
+        } else if (option.patch) {
+            newVersion = this.handleIncreaseOrSetVersion("patch", option.patch)
+        } else if (option.build) {
+            newVersion = this.handleIncreaseOrSetVersion("build", option.build)
+        } else if (option.newVersion) {
+            newVersion = option.newVersion
+        } else {
+            throw new ArgumentError("One of the bump type must be specified.")
         }
 
-        throw new ExecutableNotFoundError("`yarn` or `npm` must be installed.")
+        let executable: string
+        let args: string[]
+
+        if (which.sync("yarn")) {
+            executable = "yarn"
+            args = [
+                "version",
+                "--no-git-tag-version",
+                "--no-commit-hooks",
+                "--new-version",
+                Utility.getVersionString(newVersion)
+            ]
+        } else if (which.sync("npm")) {
+            executable = "npm"
+            args = [
+                "version",
+                "--no-git-tag-version",
+                "--no-commit-hooks",
+                Utility.getVersionString(newVersion)
+            ]
+        } else {
+            throw new ExecutableNotFoundError(
+                "`yarn` or `npm` must be installed."
+            )
+        }
+
+        const command = spawn(executable, args, {
+            stdio: "inherit"
+        })
+        command.on("close", code => {
+            if (code != 0) {
+                throw new SubcommandError("Command run unsuccessful")
+            }
+        })
     }
 }

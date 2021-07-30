@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import path from "path"
-import CommandController from "./controller"
+import CommandController from "./Controller"
 import {
     PlatformCommandProvider,
     NodePlatformHandler,
