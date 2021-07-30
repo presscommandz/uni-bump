@@ -6,7 +6,7 @@ import which from "which"
 import * as buildNumGen from "build-number-generator"
 
 import { Options } from "yargs"
-import PlatformCommandController from "./PlatformCommandController"
+import PlatformCommandProvider from "@platform/PlatformCommandProvider"
 import {
     CommandError,
     ExecutableNotFoundError,
@@ -15,7 +15,7 @@ import {
 } from "@error"
 import Utility from "@utility"
 
-export default class NodePlatformHandler implements PlatformCommandController {
+export default class NodeProvider implements PlatformCommandProvider {
     getOptions(): Record<string, Options> {
         const conflictSwitches = [
             "major",
@@ -67,7 +67,7 @@ export default class NodePlatformHandler implements PlatformCommandController {
     }
 
     private static getNewBuildVersion(): string | never {
-        const projectRoot = NodePlatformHandler.findProjectRoot()
+        const projectRoot = NodeProvider.findProjectRoot()
         if (!projectRoot) {
             throw new ProjectRootNotFoundError(
                 "Cannot find project root to determine project version"
@@ -110,7 +110,7 @@ export default class NodePlatformHandler implements PlatformCommandController {
         } else if (option.patch) {
             yarnArgs.push("--patch")
         } else if (option.build) {
-            const newVersion = NodePlatformHandler.getNewBuildVersion()
+            const newVersion = NodeProvider.getNewBuildVersion()
             yarnArgs.push("--new-version", newVersion)
         }
 
@@ -138,7 +138,7 @@ export default class NodePlatformHandler implements PlatformCommandController {
         } else if (option.patch) {
             npmArgs.push("patch")
         } else if (option.build) {
-            const newVersion = NodePlatformHandler.getNewBuildVersion()
+            const newVersion = NodeProvider.getNewBuildVersion()
             npmArgs.push(newVersion)
         }
 

@@ -1,6 +1,6 @@
 import { Options } from "yargs"
 
-export default interface PlatformCommandController {
+export default interface PlatformCommandProvider {
     getOptions(): Record<string, Options>
     execute(option: any): void
 }

@@ -1,5 +1,5 @@
 import fsp from "fs/promises"
-import PlatformCommandController from "@platform/PlatformCommandController"
+import { PlatformCommandProvider } from "@platform"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
@@ -14,11 +14,11 @@ interface Config {
 }
 
 export default class CommandController {
-    private handlerMap = new Map<string, PlatformCommandController>()
+    private handlerMap = new Map<string, PlatformCommandProvider>()
 
     constructor(private readonly configPath: string) {}
 
-    addHandler(platform: string, handler: PlatformCommandController) {
+    addHandler(platform: string, handler: PlatformCommandProvider) {
         this.handlerMap.set(platform, handler)
     }
 

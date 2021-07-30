@@ -3,14 +3,14 @@
 import path from "path"
 import CommandController from "./controller"
 import {
-    PlatformCommandController,
+    PlatformCommandProvider,
     NodePlatformHandler,
     FastlaneHandler
 } from "./platform"
 
 const defaultConfigPath = path.join(process.cwd(), "bumpversion.json")
 
-const handlers: Record<string, PlatformCommandController> = {
+const handlers: Record<string, PlatformCommandProvider> = {
     node: new NodePlatformHandler(),
     fastlane: new FastlaneHandler()
 }

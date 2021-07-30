@@ -2,11 +2,11 @@ import { spawn } from "child_process"
 import which from "which"
 
 import { Options } from "yargs"
-import PlatformCommandController from "@platform/PlatformCommandController"
+import PlatformCommandProvider from "@platform/PlatformCommandProvider"
 import Utility from "@utility"
 import { ExecutableNotFoundError, SubcommandError } from "@error"
 
-export default class FastlaneHandler implements PlatformCommandController {
+export default class FastlaneProvider implements PlatformCommandProvider {
     getOptions(): Record<string, Options> {
         const conflictSwitches = ["major", "minor", "patch", "new-version"]
         return {
