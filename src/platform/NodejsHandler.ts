@@ -112,6 +112,8 @@ export default class NodeProvider implements PlatformCommandProvider {
         } else if (option.build) {
             const newVersion = NodeProvider.getNewBuildVersion()
             yarnArgs.push("--new-version", newVersion)
+        } else if (option.newVersion) {
+            yarnArgs.push("--new-version", option.newVersion)
         }
 
         const command = spawn("yarn", yarnArgs, {
@@ -140,6 +142,8 @@ export default class NodeProvider implements PlatformCommandProvider {
         } else if (option.build) {
             const newVersion = NodeProvider.getNewBuildVersion()
             npmArgs.push(newVersion)
+        } else if (option.newVersion) {
+            npmArgs.push(option.newVersion)
         }
 
         const command = spawn("npm", npmArgs, {
