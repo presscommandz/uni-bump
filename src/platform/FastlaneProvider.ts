@@ -123,7 +123,6 @@ export default class FastlaneProvider implements PlatformCommandProvider {
         if (!which.sync("fastlane")) {
             throw new ExecutableNotFoundError("`fastlane` must be installed")
         }
-        console.log("opt", option)
 
         if (!option.bump || !option.bump.switchOpt) {
             throw new ArgumentError("One of the bump type must be specified")
