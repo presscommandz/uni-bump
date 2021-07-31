@@ -2,8 +2,10 @@ import { spawn, spawnSync } from "child_process"
 import which from "which"
 
 import semver from "semver"
-import { Option } from "commander"
-import PlatformCommandProvider from "@platform/PlatformCommandProvider"
+import OverwriteDestinationAction from "../OverwriteDestinationAction"
+import PlatformCommandProvider, {
+    Argument
+} from "@platform/PlatformCommandProvider"
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
 import {
     CommandError,
@@ -16,28 +18,58 @@ import SemVerHandler from "../SemVerHandler"
 import Utility from "@utility"
 
 export default class FastlaneProvider implements PlatformCommandProvider {
-    getOptions(): Option[] {
+    getOptions(): Argument[] {
         return [
-            new Option(
-                BumpSwitchTypes.major,
-                "Incrementing the major number of current version"
-            ),
-            new Option(
-                BumpSwitchTypes.minor,
-                "Incrementing the minor number of current version"
-            ),
-            new Option(
-                BumpSwitchTypes.patch,
-                "Incrementing the patch number of current version"
-            ),
-            new Option(
-                BumpSwitchTypes.build,
-                "Incrementing the build number of current version"
-            ),
-            new Option(
-                BumpSwitchTypes.newVersion,
-                "Creates a new version specified by <version>"
-            )
+            {
+                flags: [BumpSwitchTypes.major],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "int",
+                    help: "Incrementing the major number of current version"
+                }
+            },
+            {
+                flags: [BumpSwitchTypes.minor],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "int",
+                    help: "Incrementing the minor number of current version"
+                }
+            },
+            {
+                flags: [BumpSwitchTypes.patch],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "int",
+                    help: "Incrementing the patch number of current version"
+                }
+            },
+            {
+                flags: [BumpSwitchTypes.build],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "string",
+                    help: "Incrementing the build number of current version"
+                }
+            },
+            {
+                flags: [BumpSwitchTypes.newVersion],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "string",
+                    help: "Creates a new version specified by <version>"
+                }
+            }
         ]
     }
 
@@ -76,7 +108,7 @@ export default class FastlaneProvider implements PlatformCommandProvider {
                 `version_number:${option.newVersion}`
             )
         } else if (
-            [option.major, option.minor, option.patch].every(val => val)
+            [option.major, option.minor, option.patch].some(val => val)
         ) {
             for (const bumpType of ["major", "minor", "patch"]) {
                 if (!option[bumpType]) {

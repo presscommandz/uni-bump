@@ -1,6 +1,6 @@
 import fsp from "fs/promises"
 import { PlatformCommandProvider } from "@platform"
-import { Command, Option } from "commander"
+import { ArgumentParser } from "argparse"
 
 import { CommandError, InvalidConfigError } from "@model/error"
 import Provider from "@platform/Provider"
@@ -48,18 +48,17 @@ export default class CommandController {
 
     async execute() {
         try {
-            const program = new Command()
-                .addOption(
-                    new Option("--provider <provider>").choices(
-                        Array.from(this.handlerMap.keys())
-                    )
-                )
-                // Bypass help in current parse to use in next parse, when handler is called
-                // TODO: Manually write help text
-                .allowUnknownOption(true)
-                .helpOption(false)
+            // Bypass help in current parse to use in next parse, when handler is called
+            // TODO: Manually write help text
+            const initProgram = new ArgumentParser({
+                addHelp: false
+            })
+            initProgram.addArgument("--provider", {
+                type: "string",
+                choices: Array.from(this.handlerMap.keys())
+            })
 
-            let platform = program.parse().opts().platform
+            let platform = initProgram.parseKnownArgs()[0].platform
 
             if (!platform) {
                 platform =
@@ -68,9 +67,12 @@ export default class CommandController {
             }
 
             const handler = this.handlerMap.get(platform)
-            handler.getOptions().forEach(option => program.addOption(option))
-            program.allowUnknownOption(false).helpOption(true)
-            handler.execute(program.parse().opts())
+            const program = new ArgumentParser()
+
+            handler.getOptions().forEach(argument => {
+                program.addArgument(argument.flags, argument.options)
+            })
+            await handler.execute(program.parseKnownArgs()[0])
         } catch (err) {
             return this.handleError(err)
         }

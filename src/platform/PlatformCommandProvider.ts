@@ -1,6 +1,11 @@
-import { Option } from "commander"
+import { ArgumentOptions } from "argparse"
+
+export interface Argument {
+    flags: string[]
+    options?: ArgumentOptions
+}
 
 export default interface PlatformCommandProvider {
-    getOptions(): Option[]
+    getOptions(): Argument[]
     execute(option: any): void | Promise<void>
 }

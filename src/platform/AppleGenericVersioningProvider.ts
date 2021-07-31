@@ -2,10 +2,11 @@ import { spawn, spawnSync } from "child_process"
 import semver, { SemVer } from "semver"
 import which from "which"
 
-import { Option } from "commander"
-import ArgumentParser from "../ArgumentParser"
 import SemVerHandler from "../SemVerHandler"
-import PlatformCommandProvider from "@platform/PlatformCommandProvider"
+import PlatformCommandProvider, {
+    Argument
+} from "@platform/PlatformCommandProvider"
+import OverwriteDestinationAction from "../OverwriteDestinationAction"
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
 import {
     CommandError,
@@ -19,28 +20,58 @@ import Utility from "@utility"
 export default class AppleGenericVersioningProvider
     implements PlatformCommandProvider
 {
-    getOptions(): Option[] {
+    getOptions(): Argument[] {
         return [
-            new Option(
-                BumpSwitchTypes.major,
-                "Incrementing the major number of current version"
-            ).argParser(ArgumentParser.parseIntOrBooleanArgument),
-            new Option(
-                BumpSwitchTypes.minor,
-                "Incrementing the minor number of current version"
-            ).argParser(ArgumentParser.parseIntOrBooleanArgument),
-            new Option(
-                BumpSwitchTypes.patch,
-                "Incrementing the patch number of current version"
-            ).argParser(ArgumentParser.parseIntOrBooleanArgument),
-            new Option(
-                BumpSwitchTypes.build,
-                "Incrementing the build number of current version"
-            ),
-            new Option(
-                BumpSwitchTypes.newVersion,
-                "Creates a new version specified by <version>"
-            ).argParser(ArgumentParser.parseVersionArgument)
+            {
+                flags: [BumpSwitchTypes.major],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "int",
+                    help: "Incrementing the major number of current version"
+                }
+            },
+            {
+                flags: [BumpSwitchTypes.minor],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "int",
+                    help: "Incrementing the minor number of current version"
+                }
+            },
+            {
+                flags: [BumpSwitchTypes.patch],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "int",
+                    help: "Incrementing the patch number of current version"
+                }
+            },
+            {
+                flags: [BumpSwitchTypes.build],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "string",
+                    help: "Incrementing the build number of current version"
+                }
+            },
+            {
+                flags: [BumpSwitchTypes.newVersion],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "string",
+                    help: "Creates a new version specified by <version>"
+                }
+            }
         ]
     }
 

@@ -4,11 +4,13 @@ import path from "path"
 import semver, { SemVer } from "semver"
 import which from "which"
 
-import { Option } from "commander"
-import ArgumentParser from "../ArgumentParser"
+import OverwriteDestinationAction from "../OverwriteDestinationAction"
 import SemVerHandler from "../SemVerHandler"
-import PlatformCommandProvider from "@platform/PlatformCommandProvider"
+import PlatformCommandProvider, {
+    Argument
+} from "@platform/PlatformCommandProvider"
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
+import BumpType from "@model/BumpTypes"
 import {
     CommandError,
     ArgumentError,
@@ -19,28 +21,59 @@ import {
 import Utility from "@utility"
 
 export default class NodeProvider implements PlatformCommandProvider {
-    getOptions(): Option[] {
+    getOptions(): Argument[] {
+        // @ts-ignore
         return [
-            new Option(
-                BumpSwitchTypes.major,
-                "Incrementing the major number of current version"
-            ).argParser(ArgumentParser.parseIntOrBooleanArgument),
-            new Option(
-                BumpSwitchTypes.minor,
-                "Incrementing the minor number of current version"
-            ).argParser(ArgumentParser.parseIntOrBooleanArgument),
-            new Option(
-                BumpSwitchTypes.patch,
-                "Incrementing the patch number of current version"
-            ).argParser(ArgumentParser.parseIntOrBooleanArgument),
-            new Option(
-                BumpSwitchTypes.build,
-                "Incrementing the build number of current version"
-            ),
-            new Option(
-                BumpSwitchTypes.newVersion,
-                "Creates a new version specified by <version>"
-            ).argParser(ArgumentParser.parseVersionArgument)
+            {
+                flags: [BumpSwitchTypes.major],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "int",
+                    help: "Incrementing the major number of current version"
+                }
+            },
+            {
+                flags: [BumpSwitchTypes.minor],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "int",
+                    help: "Incrementing the minor number of current version"
+                }
+            },
+            {
+                flags: [BumpSwitchTypes.patch],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "int",
+                    help: "Incrementing the patch number of current version"
+                }
+            },
+            {
+                flags: [BumpSwitchTypes.build],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "string",
+                    help: "Incrementing the build number of current version"
+                }
+            },
+            {
+                flags: [BumpSwitchTypes.newVersion],
+                options: {
+                    dest: "bump",
+                    action: OverwriteDestinationAction,
+                    nargs: "?",
+                    type: "string",
+                    help: "Creates a new version specified by <version>"
+                }
+            }
         ]
     }
 
@@ -82,37 +115,33 @@ export default class NodeProvider implements PlatformCommandProvider {
     }
 
     execute(option: any) {
-        let newVersion: SemVer
         const version = NodeProvider.getProjectVersion()
 
-        if (option.major) {
-            newVersion = SemVerHandler.bumpVersion(
-                version,
-                "major",
-                option.major
-            )
-        } else if (option.minor) {
-            newVersion = SemVerHandler.bumpVersion(
-                version,
-                "minor",
-                option.minor
-            )
-        } else if (option.patch) {
-            newVersion = SemVerHandler.bumpVersion(
-                version,
-                "patch",
-                option.patch
-            )
-        } else if (option.build) {
-            newVersion = SemVerHandler.bumpVersion(
-                version,
-                "build",
-                option.build
-            )
+        if (!option.bump || !option.bump.switchOpt) {
+            throw new ArgumentError("One of the bump type must be specified")
+        }
+
+        const { switchOpt, value } = option.bump
+        let bumpType: string
+        for (let [type, value] of Object.entries(BumpSwitchTypes)) {
+            if (value == switchOpt) {
+                bumpType = type
+                break
+            }
+        }
+        console.debug("Bump type: ", bumpType, "value: ", value)
+
+        let newVersion: SemVer
+        if (Object.keys(BumpType).includes(bumpType)) {
+            // @ts-ignore
+            newVersion = SemVerHandler.bumpVersion(version, bumpType, value)
         } else if (option.newVersion) {
             newVersion = option.newVersion
+            if (!newVersion) {
+                throw new ArgumentError("Version is invalid")
+            }
         } else {
-            throw new ArgumentError("One of the bump type must be specified.")
+            throw new ArgumentError("Unknown bump type")
         }
 
         let executable: string
