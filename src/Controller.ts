@@ -59,7 +59,6 @@ export default class CommandController {
             })
 
             let provider = initProgram.parseKnownArgs()[0].provider
-            console.log("pl", initProgram.parseKnownArgs(), provider)
 
             if (!provider) {
                 provider =
