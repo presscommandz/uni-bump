@@ -69,7 +69,6 @@ export default class NodeProvider implements PlatformCommandProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: 1,
                     type: "string",
                     help: "Creates a new version specified by <version>"
                 }
