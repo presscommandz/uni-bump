@@ -7,6 +7,7 @@ import PlatformCommandProvider, {
     Argument
 } from "@platform/PlatformCommandProvider"
 import OverwriteDestinationAction from "../OverwriteDestinationAction"
+import BumpType from "@model/BumpTypes"
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
 import {
     CommandError,
@@ -97,37 +98,32 @@ export default class AppleGenericVersioningProvider
         if (!which.sync("agvtool")) {
             throw new ExecutableNotFoundError("Cannot find agvtool")
         }
+
+        if (!option.bump || !option.bump.switchOpt) {
+            throw new ArgumentError("One of the bump type must be specified")
+        }
+        const { switchOpt, value } = option.bump
+        let bumpType: string
+        for (let [type, value] of Object.entries(BumpSwitchTypes)) {
+            if (value == switchOpt) {
+                bumpType = type
+                break
+            }
+        }
+
         let newVersion: SemVer
         const version = AppleGenericVersioningProvider.getProjectVersion()
 
-        if (option.major) {
-            newVersion = SemVerHandler.bumpVersion(
-                version,
-                "major",
-                option.major
-            )
-        } else if (option.minor) {
-            newVersion = SemVerHandler.bumpVersion(
-                version,
-                "minor",
-                option.minor
-            )
-        } else if (option.patch) {
-            newVersion = SemVerHandler.bumpVersion(
-                version,
-                "patch",
-                option.patch
-            )
-        } else if (option.build) {
-            newVersion = SemVerHandler.bumpVersion(
-                version,
-                "build",
-                option.build
-            )
-        } else if (option.newVersion) {
-            newVersion = option.newVersion
+        if (Object.keys(BumpType).includes(bumpType)) {
+            // @ts-ignore
+            newVersion = SemVerHandler.bumpVersion(version, bumpType, value)
+        } else if (bumpType == "newVersion") {
+            newVersion = semver.parse(value)
+            if (!newVersion) {
+                throw new ArgumentError("Version is invalid")
+            }
         } else {
-            throw new ArgumentError("One of the bump type must be specified.")
+            throw new ArgumentError("Unknown bump type")
         }
 
         const command = spawn(

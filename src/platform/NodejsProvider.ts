@@ -115,8 +115,6 @@ export default class NodeProvider implements PlatformCommandProvider {
     }
 
     execute(option: any) {
-        const version = NodeProvider.getProjectVersion()
-
         if (!option.bump || !option.bump.switchOpt) {
             throw new ArgumentError("One of the bump type must be specified")
         }
@@ -130,7 +128,9 @@ export default class NodeProvider implements PlatformCommandProvider {
             }
         }
 
+        const version = NodeProvider.getProjectVersion()
         let newVersion: SemVer
+
         if (Object.keys(BumpType).includes(bumpType)) {
             // @ts-ignore
             newVersion = SemVerHandler.bumpVersion(version, bumpType, value)
