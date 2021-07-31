@@ -1,53 +1,56 @@
+import _ from "lodash"
 import { SemVer } from "semver"
+import VersionType from "@model/BumpTypes"
 import * as buildNumGen from "build-number-generator"
 
 export default class SemVerHandler {
-    static SemverMainType = ["major", "minor", "patch"]
-    /**
-     *  Increase (if `value` type is boolean) or set version
-     */
-    static bumpVersion(
-        version: SemVer,
-        type: "major" | "minor" | "patch" | "build",
-        value: string | number | boolean
-    ): SemVer {
-        if (SemVerHandler.SemverMainType.includes(type)) {
-            // @ts-ignore
-            return this.increaseSemverMainComponent(version, type, value)
-        } else {
-            // @ts-ignore
-            return this.increaseBuildVersion(version, value)
+    static incVersionComponent(version: SemVer, type: VersionType) {
+        const newVersion = _.cloneDeep(version)
+        switch (type) {
+            case VersionType.major:
+            case VersionType.minor:
+            case VersionType.patch:
+                newVersion.inc(type)
+                newVersion.build = []
+                break
+            case VersionType.build:
+                newVersion.build = [buildNumGen.generate().toString()]
+                break
         }
+        return newVersion
     }
 
-    private static increaseSemverMainComponent(
+    static setVersionComponent(
         version: SemVer,
-        type: "major" | "minor" | "patch",
-        value: number | boolean
+        type: VersionType,
+        value: number
     ): SemVer {
-        if (typeof value === "boolean") {
-            version.inc(type)
-            version.build = []
-        } else {
-            // Reset all lower components
-            version.inc(type)
-            version.build = []
-            version[type] = value
+        const newVersion = _.cloneDeep(version)
+        switch (type) {
+            case VersionType.major:
+            case VersionType.minor:
+            case VersionType.patch:
+                newVersion.inc(type)
+                newVersion.build = []
+                newVersion[type] = value
+                break
+            case VersionType.build:
+                newVersion.build = [value.toString()]
+                break
         }
-        return version
+        return newVersion
     }
 
-    private static increaseBuildVersion(
-        version: SemVer,
-        value: string | boolean
-    ): SemVer {
-        let newBuildNumber: string[]
-        if (typeof value == "boolean") {
-            newBuildNumber = [buildNumGen.generate()]
-        } else {
-            newBuildNumber = [value]
+    static getVersionString(version: SemVer): string {
+        let versionString = [version.major, version.minor, version.patch].join(
+            "."
+        )
+        if (version.prerelease.length > 0) {
+            versionString = [versionString, ...version.prerelease].join("-")
         }
-        version.build = newBuildNumber
-        return version
+        if (version.build.length > 0) {
+            versionString = [versionString, ...version.build].join("+")
+        }
+        return versionString
     }
 }

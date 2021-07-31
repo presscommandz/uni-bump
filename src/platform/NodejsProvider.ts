@@ -8,7 +8,7 @@ import OverwriteDestinationAction from "../OverwriteDestinationAction"
 import SemVerHandler from "../SemVerHandler"
 import BumpProvider, { Argument } from "@platform/BumpProvider"
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
-import BumpType from "@model/BumpTypes"
+import VersionType from "@model/BumpTypes"
 import {
     CommandError,
     ArgumentError,
@@ -104,7 +104,7 @@ export default class NodeProvider implements BumpProvider {
         const version = semver.coerce(pkg.version)
         if (!version) {
             throw new CommandError(
-                "Cannot understand current version semantic.",
+                "Cannot understand project version.",
                 undefined,
                 -1
             )
@@ -118,27 +118,36 @@ export default class NodeProvider implements BumpProvider {
         }
 
         const { switchOpt, value } = option.bump
-        let bumpType: string
-        for (let [type, value] of Object.entries(BumpSwitchTypes)) {
-            if (value == switchOpt) {
-                bumpType = type
-                break
-            }
-        }
-
-        const version = NodeProvider.getProjectVersion()
         let newVersion: SemVer
 
-        if (Object.keys(BumpType).includes(bumpType)) {
-            // @ts-ignore
-            newVersion = SemVerHandler.bumpVersion(version, bumpType, value)
-        } else if (bumpType == "newVersion") {
-            newVersion = semver.coerce(value)
-            if (!newVersion) {
-                throw new ArgumentError("Version is invalid")
-            }
-        } else {
-            throw new ArgumentError("Unknown bump type")
+        switch (switchOpt) {
+            case BumpSwitchTypes.major:
+            case BumpSwitchTypes.minor:
+            case BumpSwitchTypes.patch:
+            case BumpSwitchTypes.build:
+                const bumpType = Utility.getVersionTypeFromSwitch(switchOpt)
+                const version = NodeProvider.getProjectVersion()
+                if (typeof value == "boolean") {
+                    newVersion = SemVerHandler.incVersionComponent(
+                        version,
+                        bumpType as VersionType
+                    )
+                } else {
+                    newVersion = SemVerHandler.setVersionComponent(
+                        version,
+                        bumpType as VersionType,
+                        value
+                    )
+                }
+                break
+            case BumpSwitchTypes.newVersion:
+                newVersion = semver.coerce(value)
+                if (!newVersion) {
+                    throw new ArgumentError("Version is invalid")
+                }
+                break
+            default:
+                throw new ArgumentError("Unknown bump type")
         }
 
         let executable: string
@@ -151,7 +160,7 @@ export default class NodeProvider implements BumpProvider {
                 "--no-git-tag-version",
                 "--no-commit-hooks",
                 "--new-version",
-                Utility.getVersionString(newVersion)
+                SemVerHandler.getVersionString(newVersion)
             ]
         } else if (which.sync("npm")) {
             executable = "npm"
@@ -159,7 +168,7 @@ export default class NodeProvider implements BumpProvider {
                 "version",
                 "--no-git-tag-version",
                 "--no-commit-hooks",
-                Utility.getVersionString(newVersion)
+                SemVerHandler.getVersionString(newVersion)
             ]
         } else {
             throw new ExecutableNotFoundError(

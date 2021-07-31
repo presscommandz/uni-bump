@@ -1,20 +1,21 @@
-import { SemVer } from "semver"
+import BumpSwitchType from "@model/BumpSwitchTypes"
+import VersionType from "@model/BumpTypes"
 
 export default class Utility {
-    static omitFromArray<T>(list: T[], element: T): T[] {
-        return list.filter(value => value != element)
-    }
-
-    static getVersionString(version: SemVer): string {
-        let versionString = [version.major, version.minor, version.patch].join(
-            "."
-        )
-        if (version.prerelease.length > 0) {
-            versionString = [versionString, ...version.prerelease].join("-")
+    static getVersionTypeFromSwitch(
+        switchOption: BumpSwitchType
+    ): VersionType | null {
+        switch (switchOption) {
+            case BumpSwitchType.major:
+                return VersionType.major
+            case BumpSwitchType.minor:
+                return VersionType.minor
+            case BumpSwitchType.patch:
+                return VersionType.patch
+            case BumpSwitchType.build:
+                return VersionType.build
+            default:
+                return null
         }
-        if (version.build.length > 0) {
-            versionString = [versionString, ...version.build].join("+")
-        }
-        return versionString
     }
 }

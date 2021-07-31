@@ -14,6 +14,8 @@ import {
     SubcommandError
 } from "@model/error"
 import StatusCode from "@model/StatusCode"
+import VersionType, { MainVersionTypeArray } from "@model/BumpTypes"
+import Utility from "@utility"
 
 export default class FastlaneProvider implements BumpProvider {
     getOptions(): Argument[] {
@@ -67,9 +69,11 @@ export default class FastlaneProvider implements BumpProvider {
         ]
     }
 
-    private handleIncreaseMainComponent(type: string) {
-        if (!["major", "minor", "patch"].includes(type)) {
-            return
+    private handleIncreaseMainComponent(type: VersionType) {
+        if (!MainVersionTypeArray.includes(type)) {
+            throw new Error(
+                "Version type must be 'major', 'minor' or 'patch' to use this function"
+            )
         }
         const command = spawnSync(
             "fastlane",
@@ -120,23 +124,21 @@ export default class FastlaneProvider implements BumpProvider {
         if (!option.bump || !option.bump.switchOpt) {
             throw new ArgumentError("One of the bump type must be specified")
         }
-        const { switchOpt, value } = option.bump
-        let bumpType: string
-        for (let [type, value] of Object.entries(BumpSwitchTypes)) {
-            if (value == switchOpt) {
-                bumpType = type
-                break
-            }
-        }
 
-        if (["major", "minor", "patch"].includes(bumpType)) {
-            return this.handleIncreaseMainComponent(bumpType)
-        } else if (bumpType == "build") {
-            return this.handleIncreaseBuildVersion(value)
-        } else if (bumpType == "newVersion") {
-            return this.handleSetNewVersion(value)
-        } else {
-            throw new ArgumentError("Unknown bump type")
+        const { switchOpt, value } = option.bump
+
+        switch (switchOpt) {
+            case BumpSwitchTypes.major:
+            case BumpSwitchTypes.minor:
+            case BumpSwitchTypes.patch:
+                const bumpType = Utility.getVersionTypeFromSwitch(switchOpt)
+                return this.handleIncreaseMainComponent(bumpType)
+            case BumpSwitchTypes.build:
+                return this.handleIncreaseBuildVersion(value)
+            case BumpSwitchTypes.newVersion:
+                return this.handleSetNewVersion(value)
+            default:
+                throw new ArgumentError("Unknown bump type")
         }
     }
 }

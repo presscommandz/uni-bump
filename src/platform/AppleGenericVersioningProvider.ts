@@ -1,11 +1,12 @@
 import { spawn, spawnSync } from "child_process"
 import semver, { SemVer } from "semver"
 import which from "which"
+import _ from "lodash"
 
 import SemVerHandler from "../SemVerHandler"
 import BumpProvider, { Argument } from "@platform/BumpProvider"
 import OverwriteDestinationAction from "../OverwriteDestinationAction"
-import BumpType from "@model/BumpTypes"
+import VersionType from "@model/BumpTypes"
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
 import {
     CommandError,
@@ -78,7 +79,7 @@ export default class AppleGenericVersioningProvider implements BumpProvider {
             throw new VersionNotFoundError("Cannot find project version")
         }
         const output = command.stdout.split("\n").filter(line => line)
-        const versionString = output[output.length - 1].trim()
+        const versionString = _.last(output).trim()
         const version = semver.coerce(versionString)
         if (!version) {
             throw new CommandError(
@@ -99,27 +100,37 @@ export default class AppleGenericVersioningProvider implements BumpProvider {
             throw new ArgumentError("One of the bump type must be specified")
         }
         const { switchOpt, value } = option.bump
-        let bumpType: string
-        for (let [type, value] of Object.entries(BumpSwitchTypes)) {
-            if (value == switchOpt) {
-                bumpType = type
-                break
-            }
-        }
 
         let newVersion: SemVer
-        const version = AppleGenericVersioningProvider.getProjectVersion()
-
-        if (Object.keys(BumpType).includes(bumpType)) {
-            // @ts-ignore
-            newVersion = SemVerHandler.bumpVersion(version, bumpType, value)
-        } else if (bumpType == "newVersion") {
-            newVersion = semver.coerce(value)
-            if (!newVersion) {
-                throw new ArgumentError("Version is invalid")
-            }
-        } else {
-            throw new ArgumentError("Unknown bump type")
+        switch (switchOpt) {
+            case BumpSwitchTypes.major:
+            case BumpSwitchTypes.minor:
+            case BumpSwitchTypes.patch:
+            case BumpSwitchTypes.build:
+                const bumpType = Utility.getVersionTypeFromSwitch(switchOpt)
+                const version =
+                    AppleGenericVersioningProvider.getProjectVersion()
+                if (typeof value == "boolean") {
+                    newVersion = SemVerHandler.incVersionComponent(
+                        version,
+                        bumpType as VersionType
+                    )
+                } else {
+                    newVersion = SemVerHandler.setVersionComponent(
+                        version,
+                        bumpType as VersionType,
+                        value
+                    )
+                }
+                break
+            case BumpSwitchTypes.newVersion:
+                newVersion = semver.coerce(value)
+                if (!newVersion) {
+                    throw new ArgumentError("Version is invalid")
+                }
+                break
+            default:
+                throw new ArgumentError("Unknown bump type")
         }
 
         const command = spawn(
@@ -128,7 +139,7 @@ export default class AppleGenericVersioningProvider implements BumpProvider {
                 "agvtool",
                 "new-version",
                 "-all",
-                Utility.getVersionString(newVersion)
+                SemVerHandler.getVersionString(newVersion)
             ],
             {
                 stdio: "inherit"
