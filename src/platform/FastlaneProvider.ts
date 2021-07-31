@@ -2,22 +2,22 @@ import { spawn, spawnSync } from "child_process"
 import _ from "lodash"
 import which from "which"
 import semver, { SemVer } from "semver"
+import * as buildNumGen from "build-number-generator"
 
 import OverwriteDestinationAction from "../OverwriteDestinationAction"
 import PlatformCommandProvider, {
     Argument
 } from "@platform/PlatformCommandProvider"
-import BumpSwitchTypes from "@model/BumpSwitchTypes"
+import SemVerHandler from "../SemVerHandler"
 
+import BumpSwitchTypes from "@model/BumpSwitchTypes"
 import {
     CommandError,
     ArgumentError,
     ExecutableNotFoundError,
-    SubcommandError,
-    VersionNotFoundError
+    SubcommandError
 } from "@model/error"
-import SemVerHandler from "../SemVerHandler"
-import Utility from "@utility"
+import StatusCode from "@model/StatusCode"
 
 export default class FastlaneProvider implements PlatformCommandProvider {
     getOptions(): Argument[] {
@@ -27,7 +27,7 @@ export default class FastlaneProvider implements PlatformCommandProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: "?",
+                    nargs: 0,
                     type: "int",
                     help: "Incrementing the major number of current version"
                 }
@@ -37,7 +37,7 @@ export default class FastlaneProvider implements PlatformCommandProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: "?",
+                    nargs: 0,
                     type: "int",
                     help: "Incrementing the minor number of current version"
                 }
@@ -47,7 +47,7 @@ export default class FastlaneProvider implements PlatformCommandProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: "?",
+                    nargs: 0,
                     type: "int",
                     help: "Incrementing the patch number of current version"
                 }
@@ -67,7 +67,6 @@ export default class FastlaneProvider implements PlatformCommandProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: "?",
                     type: "string",
                     help: "Creates a new version specified by <version>"
                 }
@@ -75,35 +74,56 @@ export default class FastlaneProvider implements PlatformCommandProvider {
         ]
     }
 
-    private static getProjectVersion(): semver.SemVer | never {
-        const command = spawnSync("fastlane", ["run", "get_version_number"], {
-            encoding: "utf-8",
-            env: { ...process.env, FASTLANE_DISABLE_COLORS: "1" }
-        })
-        if (command.error) {
-            throw new VersionNotFoundError("Cannot find project version")
+    private handleIncreaseMainComponent(type: string) {
+        if (!["major", "minor", "patch"].includes(type)) {
+            return
         }
-        const lines = command.stdout.trim().split("\n")
-        const versionString = _.last(lines).match(/Result: (?<version>.*?)$/)
-            ?.groups?.version
-        if (_.isNil(versionString)) {
-            throw new VersionNotFoundError("Cannot find project version")
+        const command = spawnSync(
+            "fastlane",
+            ["run", "increment_version_number", `bump_type:${type}`],
+            { stdio: "inherit" }
+        )
+        if (command.error || command.status != StatusCode.ExitSuccess) {
+            throw new SubcommandError("`fastlane` run unsuccessful")
         }
-        const version = semver.coerce(versionString)
-        if (!version) {
-            throw new CommandError(
-                "Cannot understand current version semantic.",
-                undefined,
-                -1
+    }
+
+    private handleIncreaseBuildVersion(value: string | boolean) {
+        if (typeof value == "boolean") {
+            value = buildNumGen.generate()
+        }
+        const command = spawnSync(
+            "fastlane",
+            ["run", "increment_build_number", `build_number:${value}`],
+            { stdio: "inherit" }
+        )
+        if (command.error || command.status != StatusCode.ExitSuccess) {
+            throw new SubcommandError("`fastlane` run unsuccessful")
+        }
+    }
+
+    private handleSetNewVersion(value: string) {
+        const newVersion = semver.coerce(value)
+        if (_.isNil(newVersion)) {
+            throw new ArgumentError(
+                `Cannot understand version semantic of "${value}"`
             )
         }
-        return version
+        const command = spawnSync(
+            "fastlane",
+            ["run", "increment_version_number", `version_number:${value}`],
+            { stdio: "inherit" }
+        )
+        if (command.error || command.status != StatusCode.ExitSuccess) {
+            throw new SubcommandError("`fastlane` run unsuccessful")
+        }
     }
 
     execute(option: any) {
         if (!which.sync("fastlane")) {
             throw new ExecutableNotFoundError("`fastlane` must be installed")
         }
+        console.log("opt", option)
 
         if (!option.bump || !option.bump.switchOpt) {
             throw new ArgumentError("One of the bump type must be specified")
@@ -116,39 +136,15 @@ export default class FastlaneProvider implements PlatformCommandProvider {
                 break
             }
         }
-        let fastlaneArgs = ["run"]
-        let version = FastlaneProvider.getProjectVersion()
-        let newVersion: SemVer
 
         if (["major", "minor", "patch"].includes(bumpType)) {
-            // @ts-ignore
-            newVersion = SemVerHandler.bumpVersion(version, bumpType, value)
-            fastlaneArgs.push(
-                "increment_version_number",
-                `version_number:${Utility.getVersionString(newVersion)}`
-            )
+            return this.handleIncreaseMainComponent(bumpType)
         } else if (bumpType == "build") {
-            newVersion = SemVerHandler.bumpVersion(version, bumpType, value)
-            fastlaneArgs.push(
-                "increment_build_number",
-                `build_number:${newVersion.build}`
-            )
+            return this.handleIncreaseBuildVersion(value)
         } else if (bumpType == "newVersion") {
-            fastlaneArgs.push(
-                "increment_version_number",
-                `version_number:${value}}`
-            )
+            return this.handleSetNewVersion(value)
         } else {
             throw new ArgumentError("Unknown bump type")
         }
-
-        const command = spawn("fastlane", fastlaneArgs, {
-            stdio: "inherit"
-        })
-        command.on("close", code => {
-            if (code != 0) {
-                throw new SubcommandError("Command run unsuccessful")
-            }
-        })
     }
 }

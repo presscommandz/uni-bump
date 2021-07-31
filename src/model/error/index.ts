@@ -1,4 +1,3 @@
-export { default as ErrorCode } from "./ErrorCode"
 export { default as CommandError } from "./CommandError"
 export { default as ArgumentError } from "./ArgumentError"
 export { default as InvalidConfigError } from "./InvalidConfigError"

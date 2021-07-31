@@ -1,5 +1,6 @@
-const enum ErrorCode {
+const enum StatusCode {
     SubcommandError = -1,
+    ExitSuccess = 0,
     ArgumentError = 1,
     ConfigFileNotFoundError,
     InvalidConfigError,
@@ -7,4 +8,4 @@ const enum ErrorCode {
     VersionNotFoundError
 }
 
-export default ErrorCode
+export default StatusCode

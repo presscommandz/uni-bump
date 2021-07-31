@@ -1,4 +1,4 @@
-import ErrorCode from "./ErrorCode"
+import StatusCode from "@model/StatusCode"
 import CommandError from "./CommandError"
 
 export default class ExecutableNotFoundError extends CommandError {
@@ -6,7 +6,7 @@ export default class ExecutableNotFoundError extends CommandError {
         super(
             message,
             "ExecutableNotFoundError",
-            ErrorCode.ExecutableNotFoundError
+            StatusCode.ExecutableNotFoundError
         )
     }
 }
