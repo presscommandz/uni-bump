@@ -68,11 +68,15 @@ export default class CommandController {
 
             const handler = this.handlerMap.get(provider)
             const program = new ArgumentParser()
+            program.addArgument("--provider", {
+                type: "string",
+                choices: Array.from(this.handlerMap.keys())
+            })
 
             handler.getOptions().forEach(argument => {
                 program.addArgument(argument.flags, argument.options)
             })
-            await handler.execute(program.parseKnownArgs()[0])
+            await handler.execute(program.parseArgs())
         } catch (err) {
             return this.handleError(err)
         }

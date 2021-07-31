@@ -6,16 +6,6 @@ export default class Utility {
         return list.filter(value => value != element)
     }
 
-    // npm:walk-up-path
-    static *walkUpPath(directory: string): Iterable<string> {
-        for (directory = path.resolve(directory); path; ) {
-            yield directory
-            const parent = path.dirname(directory)
-            if (parent === directory) directory = null
-            else directory = parent
-        }
-    }
-
     static getVersionString(version: SemVer): string {
         let versionString = [version.major, version.minor, version.patch].join(
             "."

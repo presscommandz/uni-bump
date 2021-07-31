@@ -78,28 +78,30 @@ export default class NodeProvider implements PlatformCommandProvider {
 
     private static findProjectRoot(
         startDirectory = process.cwd()
-    ): string | undefined {
-        for (let directory of Utility.walkUpPath(startDirectory)) {
-            if (fs.existsSync(path.join(directory, "package.json"))) {
-                return directory
+    ): string | never {
+        let prev = null
+        let dir = startDirectory
+        do {
+            if (fs.existsSync(path.join(dir, "package.json"))) {
+                return dir
             }
-        }
+            prev = dir
+            dir = path.dirname(dir)
+        } while (prev != dir)
+        throw new VersionNotFoundError(
+            "Cannot find project root to determine project version"
+        )
     }
 
     private static getProjectVersion(): semver.SemVer | never {
         const projectRoot = NodeProvider.findProjectRoot()
-        if (!projectRoot) {
-            throw new VersionNotFoundError(
-                "Cannot find project root to determine project version"
-            )
-        }
         let pkg
         try {
             pkg = JSON.parse(
                 fs.readFileSync(path.join(projectRoot, "package.json"), "utf-8")
             )
         } catch (err) {
-            throw new VersionNotFoundError("Cannot find `package.json`")
+            throw new VersionNotFoundError("Cannot find root of project.")
         }
 
         const version = semver.coerce(pkg.version)
