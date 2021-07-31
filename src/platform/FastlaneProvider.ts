@@ -1,12 +1,13 @@
 import { spawn, spawnSync } from "child_process"
 import which from "which"
 
-import semver from "semver"
+import semver, { SemVer } from "semver"
 import OverwriteDestinationAction from "../OverwriteDestinationAction"
 import PlatformCommandProvider, {
     Argument
 } from "@platform/PlatformCommandProvider"
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
+
 import {
     CommandError,
     ArgumentError,
@@ -95,47 +96,41 @@ export default class FastlaneProvider implements PlatformCommandProvider {
             throw new ExecutableNotFoundError("`fastlane` must be installed")
         }
 
-        let fastlaneArgs: string[] = ["run"]
-
-        if (option.build) {
-            fastlaneArgs.push("increment_build_number")
-            if (typeof option.build !== "boolean") {
-                fastlaneArgs.push(`build_number:${option.build}`)
+        if (!option.bump || !option.bump.switchOpt) {
+            throw new ArgumentError("One of the bump type must be specified")
+        }
+        const { switchOpt, value } = option.bump
+        let bumpType: string
+        for (let [type, value] of Object.entries(BumpSwitchTypes)) {
+            if (value == switchOpt) {
+                bumpType = type
+                break
             }
-        } else if (option.newVersion) {
+        }
+        let fastlaneArgs = ["run"]
+        let version = FastlaneProvider.getProjectVersion()
+        let newVersion: SemVer
+
+        if (["major", "minor", "patch"].includes(bumpType)) {
+            // @ts-ignore
+            newVersion = SemVerHandler.bumpVersion(version, bumpType, value)
             fastlaneArgs.push(
                 "increment_version_number",
-                `version_number:${option.newVersion}`
+                `version_number:${Utility.getVersionString(newVersion)}`
             )
-        } else if (
-            [option.major, option.minor, option.patch].some(val => val)
-        ) {
-            for (const bumpType of ["major", "minor", "patch"]) {
-                if (!option[bumpType]) {
-                    continue
-                }
-                const value = option[bumpType]
-                if (typeof value == "boolean") {
-                    fastlaneArgs.push(
-                        "increment_version_number",
-                        `bump_type:${bumpType}`
-                    )
-                } else {
-                    const version = FastlaneProvider.getProjectVersion()
-                    const newVersion = SemVerHandler.bumpVersion(
-                        version,
-                        // @ts-ignore
-                        bumpType,
-                        value
-                    )
-                    fastlaneArgs.push(
-                        "increment_version_number",
-                        `version_number:${Utility.getVersionString(newVersion)}`
-                    )
-                }
-            }
+        } else if (bumpType == "build") {
+            newVersion = SemVerHandler.bumpVersion(version, bumpType, value)
+            fastlaneArgs.push(
+                "increment_build_number",
+                `build_number:${newVersion.build}`
+            )
+        } else if (bumpType == "newVersion") {
+            fastlaneArgs.push(
+                "increment_version_number",
+                `version_number:${value}}`
+            )
         } else {
-            throw new ArgumentError("One of the bump type must be specified.")
+            throw new ArgumentError("Unknown bump type")
         }
 
         const command = spawn("fastlane", fastlaneArgs, {

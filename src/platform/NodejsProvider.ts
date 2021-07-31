@@ -129,14 +129,13 @@ export default class NodeProvider implements PlatformCommandProvider {
                 break
             }
         }
-        console.debug("Bump type: ", bumpType, "value: ", value)
 
         let newVersion: SemVer
         if (Object.keys(BumpType).includes(bumpType)) {
             // @ts-ignore
             newVersion = SemVerHandler.bumpVersion(version, bumpType, value)
-        } else if (option.newVersion) {
-            newVersion = option.newVersion
+        } else if (bumpType == "newVersion") {
+            newVersion = semver.parse(value)
             if (!newVersion) {
                 throw new ArgumentError("Version is invalid")
             }
