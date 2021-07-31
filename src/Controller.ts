@@ -35,7 +35,7 @@ export default class CommandController {
         return config as Config
     }
 
-    private async getPlatformFromConfigFile() {
+    private async getProviderFromConfigFile() {
         let configString: any
         try {
             configString = await fsp.readFile(this.configPath, "utf8")
@@ -58,15 +58,16 @@ export default class CommandController {
                 choices: Array.from(this.handlerMap.keys())
             })
 
-            let platform = initProgram.parseKnownArgs()[0].platform
+            let provider = initProgram.parseKnownArgs()[0].provider
+            console.log("pl", initProgram.parseKnownArgs(), provider)
 
-            if (!platform) {
-                platform =
-                    (await this.getPlatformFromConfigFile()) ||
+            if (!provider) {
+                provider =
+                    (await this.getProviderFromConfigFile()) ||
                     this.defaultProvider
             }
 
-            const handler = this.handlerMap.get(platform)
+            const handler = this.handlerMap.get(provider)
             const program = new ArgumentParser()
 
             handler.getOptions().forEach(argument => {

@@ -103,7 +103,7 @@ export default class NodeProvider implements PlatformCommandProvider {
             throw new VersionNotFoundError("Cannot find `package.json`")
         }
 
-        const version = semver.parse(pkg.version)
+        const version = semver.coerce(pkg.version)
         if (!version) {
             throw new CommandError(
                 "Cannot understand current version semantic.",
@@ -135,7 +135,7 @@ export default class NodeProvider implements PlatformCommandProvider {
             // @ts-ignore
             newVersion = SemVerHandler.bumpVersion(version, bumpType, value)
         } else if (bumpType == "newVersion") {
-            newVersion = semver.parse(value)
+            newVersion = semver.coerce(value)
             if (!newVersion) {
                 throw new ArgumentError("Version is invalid")
             }

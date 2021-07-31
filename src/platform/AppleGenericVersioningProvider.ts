@@ -83,7 +83,7 @@ export default class AppleGenericVersioningProvider
         }
         const output = command.stdout.split("\n").filter(line => line)
         const versionString = output[output.length - 1].trim()
-        const version = semver.parse(versionString)
+        const version = semver.coerce(versionString)
         if (!version) {
             throw new CommandError(
                 "Cannot understand current version semantic.",
@@ -118,7 +118,7 @@ export default class AppleGenericVersioningProvider
             // @ts-ignore
             newVersion = SemVerHandler.bumpVersion(version, bumpType, value)
         } else if (bumpType == "newVersion") {
-            newVersion = semver.parse(value)
+            newVersion = semver.coerce(value)
             if (!newVersion) {
                 throw new ArgumentError("Version is invalid")
             }

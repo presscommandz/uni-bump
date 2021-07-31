@@ -1,7 +1,8 @@
 import { spawn, spawnSync } from "child_process"
+import _ from "lodash"
 import which from "which"
-
 import semver, { SemVer } from "semver"
+
 import OverwriteDestinationAction from "../OverwriteDestinationAction"
 import PlatformCommandProvider, {
     Argument
@@ -75,12 +76,20 @@ export default class FastlaneProvider implements PlatformCommandProvider {
     }
 
     private static getProjectVersion(): semver.SemVer | never {
-        const command = spawnSync("fastlane", ["run", "get_version_number"])
+        const command = spawnSync("fastlane", ["run", "get_version_number"], {
+            encoding: "utf-8",
+            env: { ...process.env, FASTLANE_DISABLE_COLORS: "1" }
+        })
         if (command.error) {
             throw new VersionNotFoundError("Cannot find project version")
         }
-        const versionString = command.stdout.trim()
-        const version = semver.parse(versionString)
+        const lines = command.stdout.trim().split("\n")
+        const versionString = _.last(lines).match(/Result: (?<version>.*?)$/)
+            ?.groups?.version
+        if (_.isNil(versionString)) {
+            throw new VersionNotFoundError("Cannot find project version")
+        }
+        const version = semver.coerce(versionString)
         if (!version) {
             throw new CommandError(
                 "Cannot understand current version semantic.",
