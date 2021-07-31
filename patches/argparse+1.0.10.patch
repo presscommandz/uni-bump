@@ -1,0 +1,22 @@
+diff --git a/node_modules/argparse/lib/argument_parser.js b/node_modules/argparse/lib/argument_parser.js
+index bd9a59a..409a24a 100644
+--- a/node_modules/argparse/lib/argument_parser.js
++++ b/node_modules/argparse/lib/argument_parser.js
+@@ -89,14 +89,14 @@ function ArgumentParser(options) {
+   this.register('type', 'auto', FUNCTION_IDENTITY);
+   this.register('type', null, FUNCTION_IDENTITY);
+   this.register('type', 'int', function (x) {
+-    var result = parseInt(x, 10);
+-    if (isNaN(result)) {
++    var result = Number(x, 10);
++    if (isNaN(result) || Math.round(result) != result) {
+       throw new Error(x + ' is not a valid integer.');
+     }
+     return result;
+   });
+   this.register('type', 'float', function (x) {
+-    var result = parseFloat(x);
++    var result = Number(x);
+     if (isNaN(result)) {
+       throw new Error(x + ' is not a valid float.');
+     }
