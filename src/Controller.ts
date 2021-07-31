@@ -3,19 +3,19 @@ import { PlatformCommandProvider } from "@platform"
 import { Command, Option } from "commander"
 
 import { CommandError, InvalidConfigError } from "@model/error"
-import Platform from "@platform/Platform"
+import Provider from "@platform/Provider"
 
 interface Config {
-    platform?: string
+    provider?: string
 }
 
 export default class CommandController {
-    private handlerMap = new Map<Platform, PlatformCommandProvider>()
-    private readonly defaultPlatform = Platform.node
+    private handlerMap = new Map<Provider, PlatformCommandProvider>()
+    private readonly defaultProvider = Provider.node
 
     constructor(private readonly configPath: string) {}
 
-    addHandler(platform: Platform, handler: PlatformCommandProvider) {
+    addHandler(platform: Provider, handler: PlatformCommandProvider) {
         this.handlerMap.set(platform, handler)
     }
 
@@ -40,17 +40,17 @@ export default class CommandController {
         try {
             configString = await fsp.readFile(this.configPath, "utf8")
         } catch (err) {
-            return this.defaultPlatform
+            return this.defaultProvider
         }
         const config = this.parseConfigFile(configString)
-        return config.platform
+        return config.provider
     }
 
     async execute() {
         try {
             const program = new Command()
                 .addOption(
-                    new Option("--platform <platform>").choices(
+                    new Option("--provider <provider>").choices(
                         Array.from(this.handlerMap.keys())
                     )
                 )
@@ -64,7 +64,7 @@ export default class CommandController {
             if (!platform) {
                 platform =
                     (await this.getPlatformFromConfigFile()) ||
-                    this.defaultPlatform
+                    this.defaultProvider
             }
 
             const handler = this.handlerMap.get(platform)

@@ -1,7 +1,7 @@
-const enum Platform {
+const enum Provider {
     node = "node",
     fastlane = "fastlane",
     agvtool = "agvtool"
 }
 
-export default Platform
+export default Provider

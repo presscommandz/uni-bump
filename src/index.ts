@@ -8,14 +8,14 @@ import {
     NodePlatformHandler,
     FastlaneHandler
 } from "@platform"
-import Platform from "@platform/Platform"
+import Provider from "@platform/Provider"
 
 const defaultConfigPath = path.join(process.cwd(), "bumpversion.json")
 
-const handlers = new Map<Platform, PlatformCommandProvider>([
-    [Platform.node, new NodePlatformHandler()],
-    [Platform.fastlane, new FastlaneHandler()],
-    [Platform.agvtool, new AppleGenericVersioningProvider()]
+const handlers = new Map<Provider, PlatformCommandProvider>([
+    [Provider.node, new NodePlatformHandler()],
+    [Provider.fastlane, new FastlaneHandler()],
+    [Provider.agvtool, new AppleGenericVersioningProvider()]
 ])
 
 const controller = new CommandController(defaultConfigPath)
