@@ -1,5 +1,5 @@
 import fsp from "fs/promises"
-import { PlatformCommandProvider } from "@platform"
+import { BumpProvider } from "@platform"
 import { ArgumentParser } from "argparse"
 
 import { CommandError, InvalidConfigError } from "@model/error"
@@ -10,12 +10,15 @@ interface Config {
 }
 
 export default class CommandController {
-    private handlerMap = new Map<Provider, PlatformCommandProvider>()
+    private handlerMap = new Map<Provider, BumpProvider>()
     private readonly defaultProvider = Provider.node
+    private readonly configPath: string
 
-    constructor(private readonly configPath: string) {}
+    constructor(configPath: string) {
+        this.configPath = configPath
+    }
 
-    addHandler(platform: Provider, handler: PlatformCommandProvider) {
+    addHandler(platform: Provider, handler: BumpProvider) {
         this.handlerMap.set(platform, handler)
     }
 

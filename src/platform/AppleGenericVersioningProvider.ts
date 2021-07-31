@@ -3,9 +3,7 @@ import semver, { SemVer } from "semver"
 import which from "which"
 
 import SemVerHandler from "../SemVerHandler"
-import PlatformCommandProvider, {
-    Argument
-} from "@platform/PlatformCommandProvider"
+import BumpProvider, { Argument } from "@platform/BumpProvider"
 import OverwriteDestinationAction from "../OverwriteDestinationAction"
 import BumpType from "@model/BumpTypes"
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
@@ -18,9 +16,7 @@ import {
 } from "@model/error"
 import Utility from "@utility"
 
-export default class AppleGenericVersioningProvider
-    implements PlatformCommandProvider
-{
+export default class AppleGenericVersioningProvider implements BumpProvider {
     getOptions(): Argument[] {
         return [
             {

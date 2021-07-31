@@ -1,25 +1,21 @@
-import { spawn, spawnSync } from "child_process"
+import { spawnSync } from "child_process"
 import _ from "lodash"
 import which from "which"
-import semver, { SemVer } from "semver"
+import semver from "semver"
 import * as buildNumGen from "build-number-generator"
 
 import OverwriteDestinationAction from "../OverwriteDestinationAction"
-import PlatformCommandProvider, {
-    Argument
-} from "@platform/PlatformCommandProvider"
-import SemVerHandler from "../SemVerHandler"
+import BumpProvider, { Argument } from "@platform/BumpProvider"
 
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
 import {
-    CommandError,
     ArgumentError,
     ExecutableNotFoundError,
     SubcommandError
 } from "@model/error"
 import StatusCode from "@model/StatusCode"
 
-export default class FastlaneProvider implements PlatformCommandProvider {
+export default class FastlaneProvider implements BumpProvider {
     getOptions(): Argument[] {
         return [
             {
@@ -28,7 +24,6 @@ export default class FastlaneProvider implements PlatformCommandProvider {
                     dest: "bump",
                     action: OverwriteDestinationAction,
                     nargs: 0,
-                    type: "int",
                     help: "Incrementing the major number of current version"
                 }
             },
@@ -38,7 +33,6 @@ export default class FastlaneProvider implements PlatformCommandProvider {
                     dest: "bump",
                     action: OverwriteDestinationAction,
                     nargs: 0,
-                    type: "int",
                     help: "Incrementing the minor number of current version"
                 }
             },
@@ -48,7 +42,6 @@ export default class FastlaneProvider implements PlatformCommandProvider {
                     dest: "bump",
                     action: OverwriteDestinationAction,
                     nargs: 0,
-                    type: "int",
                     help: "Incrementing the patch number of current version"
                 }
             },

@@ -1,3 +1,5 @@
+/// <reference path="BumpProvider.ts" />
+
 import { spawn } from "child_process"
 import fs from "fs"
 import path from "path"
@@ -6,9 +8,7 @@ import which from "which"
 
 import OverwriteDestinationAction from "../OverwriteDestinationAction"
 import SemVerHandler from "../SemVerHandler"
-import PlatformCommandProvider, {
-    Argument
-} from "@platform/PlatformCommandProvider"
+import BumpProvider, { Argument } from "@platform/BumpProvider"
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
 import BumpType from "@model/BumpTypes"
 import {
@@ -20,7 +20,7 @@ import {
 } from "@model/error"
 import Utility from "@utility"
 
-export default class NodeProvider implements PlatformCommandProvider {
+export default class NodeProvider implements BumpProvider {
     getOptions(): Argument[] {
         // @ts-ignore
         return [
@@ -40,7 +40,6 @@ export default class NodeProvider implements PlatformCommandProvider {
                     dest: "bump",
                     action: OverwriteDestinationAction,
                     nargs: "?",
-                    type: "int",
                     help: "Incrementing the minor number of current version"
                 }
             },

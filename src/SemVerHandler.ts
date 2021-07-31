@@ -1,4 +1,4 @@
-import semver, { SemVer } from "semver"
+import { SemVer } from "semver"
 import * as buildNumGen from "build-number-generator"
 
 export default class SemVerHandler {

@@ -1,4 +1,3 @@
-import path from "path"
 import { SemVer } from "semver"
 
 export default class Utility {
