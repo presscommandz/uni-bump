@@ -65,6 +65,14 @@ export default class FastlaneProvider implements BumpProvider {
                     type: "string",
                     help: "Creates a new version specified by <version>"
                 }
+            },
+            {
+                flags: [BumpSwitchTypes.commitMessage],
+                options: {
+                    type: "string",
+                    nargs: "?",
+                    help: "Specify version bump commit message"
+                }
             }
         ]
     }
@@ -81,7 +89,7 @@ export default class FastlaneProvider implements BumpProvider {
             { stdio: "inherit" }
         )
         if (command.error || command.status != StatusCode.ExitSuccess) {
-            throw new SubcommandError("`fastlane` run unsuccessful")
+            throw new SubcommandError(`fastlane bump ${type} unsuccessful`)
         }
     }
 
@@ -112,13 +120,15 @@ export default class FastlaneProvider implements BumpProvider {
             { stdio: "inherit" }
         )
         if (command.error || command.status != StatusCode.ExitSuccess) {
-            throw new SubcommandError("`fastlane` run unsuccessful")
+            throw new SubcommandError("fastlane set new version unsuccessful")
         }
     }
 
     execute(option: any) {
         if (!which.sync("fastlane")) {
-            throw new ExecutableNotFoundError("`fastlane` must be installed")
+            throw new ExecutableNotFoundError(
+                "fastlane must be installed before using fastlane provider"
+            )
         }
 
         if (!option.bump || !option.bump.switchOpt) {
@@ -132,13 +142,32 @@ export default class FastlaneProvider implements BumpProvider {
             case BumpSwitchTypes.minor:
             case BumpSwitchTypes.patch:
                 const bumpType = Utility.getVersionTypeFromSwitch(switchOpt)
-                return this.handleIncreaseMainComponent(bumpType)
+                this.handleIncreaseMainComponent(bumpType)
+                break
             case BumpSwitchTypes.build:
-                return this.handleIncreaseBuildVersion(value)
+                this.handleIncreaseBuildVersion(value)
+                break
             case BumpSwitchTypes.newVersion:
-                return this.handleSetNewVersion(value)
+                this.handleSetNewVersion(value)
+                break
             default:
                 throw new ArgumentError("Unknown bump type")
+        }
+
+        const fastlaneCommitArgs = ["run", "commit_version_bump"]
+        if (option.message) {
+            fastlaneCommitArgs.push(`message:${option.message}`)
+        }
+        const commitCommand = spawnSync("fastlane", fastlaneCommitArgs, {
+            stdio: "inherit"
+        })
+        if (
+            commitCommand.error ||
+            commitCommand.status != StatusCode.ExitSuccess
+        ) {
+            throw new SubcommandError(
+                "`fastlane` commit command run unsuccessful"
+            )
         }
     }
 }

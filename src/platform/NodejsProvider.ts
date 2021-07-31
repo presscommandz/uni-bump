@@ -157,8 +157,6 @@ export default class NodeProvider implements BumpProvider {
             executable = "yarn"
             args = [
                 "version",
-                "--no-git-tag-version",
-                "--no-commit-hooks",
                 "--new-version",
                 SemVerHandler.getVersionString(newVersion)
             ]
