@@ -4,6 +4,31 @@ import VersionType from "@model/BumpTypes"
 import * as buildNumGen from "build-number-generator"
 
 export default class SemVerHandler {
+    private static readonly versionRegex =
+        /^(?<major>0|[1-9]\d*)(?:\.(?<minor>0|[1-9]\d*)(?:\.(?<patch>0|[1-9]\d*))?)?(?:-(?<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?<build>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+
+    static parseVersionString(version: string): SemVer | null {
+        const groups = version.match(SemVerHandler.versionRegex)?.groups
+        if (!groups) {
+            return null
+        }
+        const {
+            major = "0",
+            minor = "0",
+            patch = "0",
+            prerelease = "",
+            build = ""
+        } = groups
+        let fullVersionString = [major, minor, patch].join(".")
+        if (prerelease !== "") {
+            fullVersionString = `${fullVersionString}-${prerelease}`
+        }
+        if (build !== "") {
+            fullVersionString = `${fullVersionString}+${build}`
+        }
+        return new SemVer(fullVersionString)
+    }
+
     static incVersionComponent(version: SemVer, type: VersionType) {
         const newVersion = _.cloneDeep(version)
         switch (type) {

@@ -1,8 +1,8 @@
 import { spawnSync } from "child_process"
 import _ from "lodash"
 import which from "which"
-import semver from "semver"
 import * as buildNumGen from "build-number-generator"
+import SemVerHandler from "../SemVerHandler"
 
 import OverwriteDestinationAction from "../OverwriteDestinationAction"
 import BumpProvider, { Argument } from "@platform/BumpProvider"
@@ -53,7 +53,7 @@ export default class FastlaneProvider implements BumpProvider {
                     dest: "bump",
                     action: OverwriteDestinationAction,
                     nargs: "?",
-                    type: "string",
+                    type: "int",
                     help: "Incrementing the build number of current version"
                 }
             },
@@ -108,7 +108,7 @@ export default class FastlaneProvider implements BumpProvider {
     }
 
     private handleSetNewVersion(value: string) {
-        const newVersion = semver.coerce(value)
+        const newVersion = SemVerHandler.parseVersionString(value)
         if (_.isNil(newVersion)) {
             throw new ArgumentError(
                 `Cannot understand version semantic of "${value}"`

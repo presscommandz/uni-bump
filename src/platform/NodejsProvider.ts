@@ -38,6 +38,7 @@ export default class NodeProvider implements BumpProvider {
                     dest: "bump",
                     action: OverwriteDestinationAction,
                     nargs: "?",
+                    type: "int",
                     help: "Incrementing the minor number of current version"
                 }
             },
@@ -57,7 +58,7 @@ export default class NodeProvider implements BumpProvider {
                     dest: "bump",
                     action: OverwriteDestinationAction,
                     nargs: "?",
-                    type: "string",
+                    type: "int",
                     help: "Incrementing the build number of current version"
                 }
             },
@@ -101,7 +102,7 @@ export default class NodeProvider implements BumpProvider {
             throw new VersionNotFoundError("Cannot find root of project.")
         }
 
-        const version = semver.coerce(pkg.version)
+        const version = SemVerHandler.parseVersionString(pkg.version)
         if (!version) {
             throw new CommandError(
                 "Cannot understand project version.",
@@ -141,7 +142,7 @@ export default class NodeProvider implements BumpProvider {
                 }
                 break
             case BumpSwitchTypes.newVersion:
-                newVersion = semver.coerce(value)
+                newVersion = SemVerHandler.parseVersionString(value)
                 if (!newVersion) {
                     throw new ArgumentError("Version is invalid")
                 }

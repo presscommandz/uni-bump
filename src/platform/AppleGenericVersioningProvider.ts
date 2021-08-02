@@ -80,7 +80,7 @@ export default class AppleGenericVersioningProvider implements BumpProvider {
         }
         const output = command.stdout.split("\n").filter(line => line)
         const versionString = _.last(output).trim()
-        const version = semver.coerce(versionString)
+        const version = SemVerHandler.parseVersionString(versionString)
         if (!version) {
             throw new CommandError(
                 "Cannot understand current version semantic.",
@@ -124,7 +124,7 @@ export default class AppleGenericVersioningProvider implements BumpProvider {
                 }
                 break
             case BumpSwitchTypes.newVersion:
-                newVersion = semver.coerce(value)
+                newVersion = SemVerHandler.parseVersionString(value)
                 if (!newVersion) {
                     throw new ArgumentError("Version is invalid")
                 }
