@@ -3,22 +3,21 @@ import { BumpProvider } from "@platform"
 import { ArgumentParser } from "argparse"
 
 import { CommandError, InvalidConfigError } from "@model/error"
-import Provider from "@platform/Provider"
 
 interface Config {
     provider?: string
 }
 
 export default class CommandController {
-    private handlerMap = new Map<Provider, BumpProvider>()
-    private readonly defaultProvider = Provider.node
+    private handlerMap = new Map<BumpProvider.Provider, BumpProvider>()
+    private readonly defaultProvider = BumpProvider.Provider.node
     private readonly configPath: string
 
     constructor(configPath: string) {
         this.configPath = configPath
     }
 
-    addHandler(platform: Provider, handler: BumpProvider) {
+    addHandler(platform: BumpProvider.Provider, handler: BumpProvider) {
         this.handlerMap.set(platform, handler)
     }
 
