@@ -16,6 +16,7 @@ import {
     SubcommandError,
     VersionNotFoundError
 } from "@model/error"
+import Config from "@model/Config"
 import Utility from "@utility"
 
 export default class NodeProvider implements BumpProvider {
@@ -113,7 +114,7 @@ export default class NodeProvider implements BumpProvider {
         return version
     }
 
-    execute(option: any) {
+    execute(option: Record<string, any>, _config: Config) {
         if (!option.bump || !option.bump.switchOpt) {
             throw new ArgumentError("One of the bump type must be specified")
         }

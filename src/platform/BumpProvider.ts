@@ -1,3 +1,4 @@
+import Config from "@model/Config"
 import type { ArgumentOptions } from "argparse"
 
 export interface Argument {
@@ -15,7 +16,7 @@ namespace BumpProvider {
 
 interface BumpProvider {
     getOptions(): Argument[]
-    execute(option: any): void | Promise<void>
+    execute(option: Record<string, any>, config: Config): void | Promise<void>
 }
 
 export default BumpProvider

@@ -14,10 +14,11 @@ import {
     SubcommandError
 } from "@model/error"
 import StatusCode from "@model/StatusCode"
+import Config from "@model/Config"
 import VersionType, { MainVersionTypeArray } from "@model/BumpTypes"
 import Utility from "@utility"
 
-export default class FastlaneProvider implements BumpProvider {
+class FastlaneProvider implements BumpProvider {
     getOptions(): Argument[] {
         return [
             {
@@ -67,11 +68,19 @@ export default class FastlaneProvider implements BumpProvider {
                 }
             },
             {
-                flags: [BumpSwitchTypes.commitMessage],
+                flags: [FastlaneProvider.FastlaneSwitches.message],
                 options: {
                     type: "string",
                     nargs: "?",
                     help: "Specify version bump commit message"
+                }
+            },
+            {
+                flags: [FastlaneProvider.FastlaneSwitches.xcodeproj],
+                options: {
+                    type: "string",
+                    nargs: "?",
+                    help: "Specify main project"
                 }
             }
         ]
@@ -107,6 +116,13 @@ export default class FastlaneProvider implements BumpProvider {
         }
     }
 
+    private getXcodeProjPath(option: Record<string, any>, config: Config) {
+        if (option.xcodeproj) {
+            return option.xcodeproj
+        }
+        return config?.providerConfig?.fastlane?.xcodeproj
+    }
+
     private handleSetNewVersion(value: string) {
         const newVersion = SemVerHandler.parseVersionString(value)
         if (_.isNil(newVersion)) {
@@ -124,7 +140,7 @@ export default class FastlaneProvider implements BumpProvider {
         }
     }
 
-    execute(option: any) {
+    execute(option: any, config: Config) {
         if (!which.sync("fastlane")) {
             throw new ExecutableNotFoundError(
                 "fastlane must be installed before using fastlane provider"
@@ -158,6 +174,10 @@ export default class FastlaneProvider implements BumpProvider {
         if (option.message) {
             fastlaneCommitArgs.push(`message:${option.message}`)
         }
+        const xcodeproj = this.getXcodeProjPath(option, config)
+        if (xcodeproj) {
+            fastlaneCommitArgs.push(`xcodeproj:${xcodeproj}`)
+        }
         const commitCommand = spawnSync("fastlane", fastlaneCommitArgs, {
             stdio: "inherit"
         })
@@ -171,3 +191,12 @@ export default class FastlaneProvider implements BumpProvider {
         }
     }
 }
+
+namespace FastlaneProvider {
+    export enum FastlaneSwitches {
+        message = "--message",
+        xcodeproj = "--xcodeproj"
+    }
+}
+
+export default FastlaneProvider

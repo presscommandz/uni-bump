@@ -3,8 +3,7 @@ enum BumpSwitchType {
     minor = "--minor",
     patch = "--patch",
     build = "--build",
-    newVersion = "--new-version",
-    commitMessage = "--message"
+    newVersion = "--new-version"
 }
 
 export default BumpSwitchType

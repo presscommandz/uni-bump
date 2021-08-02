@@ -15,6 +15,7 @@ import {
     SubcommandError,
     VersionNotFoundError
 } from "@model/error"
+import Config from "@model/Config"
 import Utility from "@utility"
 
 export default class AppleGenericVersioningProvider implements BumpProvider {
@@ -91,7 +92,7 @@ export default class AppleGenericVersioningProvider implements BumpProvider {
         return version
     }
 
-    execute(option: any) {
+    execute(option: Record<string, any>, _config: Config) {
         if (!which.sync("agvtool")) {
             throw new ExecutableNotFoundError("Cannot find agvtool")
         }
