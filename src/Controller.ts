@@ -2,11 +2,8 @@ import fsp from "fs/promises"
 import { BumpProvider } from "@platform"
 import { ArgumentParser } from "argparse"
 
+import Config from "@model/Config"
 import { CommandError, InvalidConfigError } from "@model/error"
-
-interface Config {
-    provider?: string
-}
 
 export default class CommandController {
     private handlerMap = new Map<BumpProvider.Provider, BumpProvider>()
@@ -37,15 +34,15 @@ export default class CommandController {
         return config as Config
     }
 
-    private async getProviderFromConfigFile() {
+    private async getConfigFromFile(): Promise<Config> {
         let configString: any
         try {
             configString = await fsp.readFile(this.configPath, "utf8")
         } catch (err) {
-            return this.defaultProvider
+            return {}
         }
         const config = this.parseConfigFile(configString)
-        return config.provider
+        return config
     }
 
     async execute() {
@@ -60,13 +57,12 @@ export default class CommandController {
                 choices: Array.from(this.handlerMap.keys())
             })
 
-            let provider = initProgram.parseKnownArgs()[0].provider
+            const config = await this.getConfigFromFile()
 
-            if (!provider) {
-                provider =
-                    (await this.getProviderFromConfigFile()) ||
-                    this.defaultProvider
-            }
+            let provider =
+                initProgram.parseKnownArgs()[0].provider ||
+                config.provider ||
+                this.defaultProvider
 
             const handler = this.handlerMap.get(provider)
             const program = new ArgumentParser()
@@ -78,7 +74,7 @@ export default class CommandController {
             handler.getOptions().forEach(argument => {
                 program.addArgument(argument.flags, argument.options)
             })
-            await handler.execute(program.parseArgs())
+            await handler.execute(program.parseArgs(), config)
         } catch (err) {
             return this.handleError(err)
         }

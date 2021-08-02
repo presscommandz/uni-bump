@@ -1,6 +1,6 @@
 {
     "name": "uni-bump",
-    "version": "0.1.0",
+    "version": "0.1.1+2",
     "description": "Universal bump semantic version",
     "main": "index.js",
     "scripts": {
