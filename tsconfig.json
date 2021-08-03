@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "baseUrl": ".",
+        "lib": ["es2019"],
+        "paths": {
+            "@platform": ["src/platform"],
+            "@platform/*": ["src/platform/*"],
+            "@model": ["src/model"],
+            "@model/*": ["src/model/*"],
+            "@utility": ["src/utility"],
+            "@utility/*": ["src/utility/*"]
+        },
+        "allowJs": true,
+        "downlevelIteration": true,
+        "forceConsistentCasingInFileNames": true,
+        "allowSyntheticDefaultImports": true,
+        "declaration": false,
+        "importsNotUsedAsValues": "remove",
+        "esModuleInterop": true,
+        "moduleResolution": "node",
+        "outDir": "lib",
+        "resolveJsonModule": true,
+        "types": ["node"],
+        "removeComments": false
+    },
+    "include": ["src/**/*", "type/**/*"],
+    "exclude": ["node_modules", "lib"]
+}

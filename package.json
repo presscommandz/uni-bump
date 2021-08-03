@@ -1,0 +1,54 @@
+{
+    "name": "uni-bump",
+    "version": "0.1.0",
+    "description": "Universal bump semantic version",
+    "main": "index.js",
+    "scripts": {
+        "build": "tsc && tsc-alias",
+        "prepublishOnly": "yarn build",
+        "postinstall": "patch-package"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/presscommandz/uni-bump.git"
+    },
+    "keywords": [
+        "bump",
+        "ios",
+        "fastlane-bump",
+        "yarn-version",
+        "semantic-versioning"
+    ],
+    "bin": {
+        "unibump": "./lib/index.js"
+    },
+    "author": "presscommandz",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/presscommandz/uni-bump/issues"
+    },
+    "homepage": "https://github.com/presscommandz/uni-bump#readme",
+    "publishConfig": {
+        "registry": "https://npm.pkg.github.com/@presscommandz"
+    },
+    "devDependencies": {
+        "@types/argparse": "^1.0.38",
+        "@types/lodash": "^4.14.171",
+        "@types/node": "^16.4.7",
+        "@types/semver": "^7.3.8",
+        "@types/which": "^2.0.1",
+        "patch-package": "^6.4.7",
+        "postinstall-postinstall": "^2.1.0",
+        "ts-node": "^10.1.0",
+        "tsc-alias": "^1.3.7",
+        "typescript": "^4.3.5"
+    },
+    "dependencies": {
+        "argparse": "^1.0.10",
+        "build-number-generator": "^1.0.0",
+        "commander": "^8.1.0",
+        "lodash": "^4.17.21",
+        "semver": "^7.3.5",
+        "which": "^2.0.2"
+    }
+}
