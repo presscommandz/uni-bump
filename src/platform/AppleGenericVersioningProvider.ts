@@ -2,6 +2,7 @@ import { spawn, spawnSync } from "child_process"
 import semver, { SemVer } from "semver"
 import which from "which"
 import _ from "lodash"
+import * as argparse from "argparse"
 
 import SemVerHandler from "../SemVerHandler"
 import BumpProvider, { Argument } from "@platform/BumpProvider"
@@ -26,7 +27,7 @@ export default class AppleGenericVersioningProvider implements BumpProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: "?",
+                    nargs: argparse.Const.OPTIONAL,
                     type: "int",
                     help: "Incrementing the major number of current version"
                 }
@@ -36,7 +37,7 @@ export default class AppleGenericVersioningProvider implements BumpProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: "?",
+                    nargs: argparse.Const.OPTIONAL,
                     type: "int",
                     help: "Incrementing the minor number of current version"
                 }
@@ -46,7 +47,7 @@ export default class AppleGenericVersioningProvider implements BumpProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: "?",
+                    nargs: argparse.Const.OPTIONAL,
                     type: "int",
                     help: "Incrementing the patch number of current version"
                 }
@@ -56,7 +57,7 @@ export default class AppleGenericVersioningProvider implements BumpProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: "?",
+                    nargs: argparse.Const.OPTIONAL,
                     type: "string",
                     help: "Incrementing the build number of current version"
                 }
@@ -66,7 +67,7 @@ export default class AppleGenericVersioningProvider implements BumpProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: "?",
+                    nargs: argparse.Const.OPTIONAL,
                     type: "string",
                     help: "Creates a new version specified by <version>"
                 }

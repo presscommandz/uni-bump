@@ -1,14 +1,15 @@
-import { spawn } from "child_process"
+import { spawnSync, SpawnSyncReturns } from "child_process"
 import fs from "fs"
 import path from "path"
+import _ from "lodash"
 import semver, { SemVer } from "semver"
 import which from "which"
+import * as argparse from "argparse"
 
 import OverwriteDestinationAction from "../OverwriteDestinationAction"
 import SemVerHandler from "../SemVerHandler"
 import BumpProvider, { Argument } from "@platform/BumpProvider"
 import BumpSwitchTypes from "@model/BumpSwitchTypes"
-import VersionType from "@model/BumpTypes"
 import {
     CommandError,
     ArgumentError,
@@ -18,8 +19,11 @@ import {
 } from "@model/error"
 import Config from "@model/Config"
 import Utility from "@utility"
+import VersionType from "@model/BumpTypes"
+import StatusCode from "@model/StatusCode"
+import BumpBuildNumberType from "@model/BumpBuildNumberType"
 
-export default class NodeProvider implements BumpProvider {
+class NodeProvider implements BumpProvider {
     getOptions(): Argument[] {
         // @ts-ignore
         return [
@@ -28,7 +32,7 @@ export default class NodeProvider implements BumpProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: "?",
+                    nargs: argparse.Const.OPTIONAL,
                     type: "int",
                     help: "Incrementing the major number of current version"
                 }
@@ -38,7 +42,7 @@ export default class NodeProvider implements BumpProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: "?",
+                    nargs: argparse.Const.OPTIONAL,
                     type: "int",
                     help: "Incrementing the minor number of current version"
                 }
@@ -48,7 +52,7 @@ export default class NodeProvider implements BumpProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: "?",
+                    nargs: argparse.Const.OPTIONAL,
                     type: "int",
                     help: "Incrementing the patch number of current version"
                 }
@@ -58,7 +62,7 @@ export default class NodeProvider implements BumpProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: "?",
+                    nargs: argparse.Const.OPTIONAL,
                     type: "int",
                     help: "Incrementing the build number of current version"
                 }
@@ -70,6 +74,17 @@ export default class NodeProvider implements BumpProvider {
                     action: OverwriteDestinationAction,
                     type: "string",
                     help: "Creates a new version specified by <version>"
+                }
+            },
+            {
+                flags: [NodeProvider.NodeSwitches.buildType],
+                options: {
+                    type: "string",
+                    defaultValue: BumpBuildNumberType.timestamp,
+                    choices: [
+                        BumpBuildNumberType.increment,
+                        BumpBuildNumberType.timestamp
+                    ]
                 }
             }
         ]
@@ -114,7 +129,98 @@ export default class NodeProvider implements BumpProvider {
         return version
     }
 
+    private setVersion(value: SemVer, executable: NodeProvider.Executable) {
+        const versionString = SemVerHandler.getVersionString(value)
+        let command: SpawnSyncReturns<any>
+        if (executable == NodeProvider.Executable.npm) {
+            command = spawnSync(
+                NodeProvider.Executable.npm,
+                ["version", versionString],
+                {
+                    stdio: "inherit"
+                }
+            )
+        } else {
+            command = spawnSync(
+                NodeProvider.Executable.yarn,
+                ["version", "--new-version", versionString],
+                { stdio: "inherit" }
+            )
+        }
+        if (command.error || command.status != StatusCode.ExitSuccess) {
+            throw new SubcommandError("Set version unsuccessful")
+        }
+    }
+
+    private bumpMainVersionComponentNumber(
+        bumpType: VersionType,
+        value: boolean | number,
+        executable: NodeProvider.Executable
+    ) {
+        const version = NodeProvider.getProjectVersion()
+        let newVersion: SemVer
+        if (typeof value == "boolean") {
+            newVersion = SemVerHandler.incVersionComponent(version, bumpType)
+        } else {
+            newVersion = SemVerHandler.setVersionComponent(
+                version,
+                bumpType,
+                value
+            )
+        }
+        this.setVersion(newVersion, executable)
+    }
+
+    private bumpBuildVersion(
+        bumpType: BumpBuildNumberType,
+        value: boolean | number,
+        executable: NodeProvider.Executable
+    ) {
+        console.log("bumptype:", bumpType)
+        const version = NodeProvider.getProjectVersion()
+        let newVersion: SemVer
+        if (typeof value != "boolean") {
+            newVersion = SemVerHandler.setVersionComponent(
+                version,
+                VersionType.build,
+                value
+            )
+        } else if (bumpType == BumpBuildNumberType.increment) {
+            let currentBuildNumber = parseInt(_.head(version.build))
+            if (!Number.isInteger(currentBuildNumber)) {
+                currentBuildNumber = 0
+            }
+            newVersion = SemVerHandler.setVersionComponent(
+                version,
+                VersionType.build,
+                currentBuildNumber + 1
+            )
+        } else {
+            newVersion = SemVerHandler.incVersionComponent(
+                version,
+                VersionType.build
+            )
+        }
+        return this.setVersion(newVersion, executable)
+    }
+
+    private static getExecutable(): NodeProvider.Executable | null {
+        for (let executable of NodeProvider.ExecutableList) {
+            if (which.sync(executable)) {
+                return executable
+            }
+        }
+        return null
+    }
+
     execute(option: Record<string, any>, _config: Config) {
+        console.log(option)
+        const executable = NodeProvider.getExecutable()
+        if (!executable) {
+            throw new ExecutableNotFoundError(
+                "`yarn` or `npm` must be installed."
+            )
+        }
         if (!option.bump || !option.bump.switchOpt) {
             throw new ArgumentError("One of the bump type must be specified")
         }
@@ -126,63 +232,37 @@ export default class NodeProvider implements BumpProvider {
             case BumpSwitchTypes.major:
             case BumpSwitchTypes.minor:
             case BumpSwitchTypes.patch:
+                return this.bumpMainVersionComponentNumber(
+                    Utility.getVersionTypeFromSwitch(switchOpt),
+                    value,
+                    executable
+                )
             case BumpSwitchTypes.build:
-                const bumpType = Utility.getVersionTypeFromSwitch(switchOpt)
-                const version = NodeProvider.getProjectVersion()
-                if (typeof value == "boolean") {
-                    newVersion = SemVerHandler.incVersionComponent(
-                        version,
-                        bumpType as VersionType
-                    )
-                } else {
-                    newVersion = SemVerHandler.setVersionComponent(
-                        version,
-                        bumpType as VersionType,
-                        value
-                    )
-                }
-                break
+                const bumpBuildType = option.build_type as BumpBuildNumberType
+                return this.bumpBuildVersion(bumpBuildType, value, executable)
+
             case BumpSwitchTypes.newVersion:
                 newVersion = SemVerHandler.parseVersionString(value)
                 if (!newVersion) {
                     throw new ArgumentError("Version is invalid")
                 }
-                break
+                return this.setVersion(newVersion, executable)
             default:
                 throw new ArgumentError("Unknown bump type")
         }
-
-        let executable: string
-        let args: string[]
-
-        if (which.sync("yarn")) {
-            executable = "yarn"
-            args = [
-                "version",
-                "--new-version",
-                SemVerHandler.getVersionString(newVersion)
-            ]
-        } else if (which.sync("npm")) {
-            executable = "npm"
-            args = [
-                "version",
-                "--no-git-tag-version",
-                "--no-commit-hooks",
-                SemVerHandler.getVersionString(newVersion)
-            ]
-        } else {
-            throw new ExecutableNotFoundError(
-                "`yarn` or `npm` must be installed."
-            )
-        }
-
-        const command = spawn(executable, args, {
-            stdio: "inherit"
-        })
-        command.on("close", code => {
-            if (code != 0) {
-                throw new SubcommandError("Command run unsuccessful")
-            }
-        })
     }
 }
+
+namespace NodeProvider {
+    export enum NodeSwitches {
+        buildType = "--build-type"
+    }
+
+    export const enum Executable {
+        npm = "npm",
+        yarn = "yarn"
+    }
+    export const ExecutableList = [Executable.yarn, Executable.npm]
+}
+
+export default NodeProvider

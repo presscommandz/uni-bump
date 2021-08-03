@@ -1,6 +1,7 @@
 import { spawnSync } from "child_process"
 import _ from "lodash"
 import which from "which"
+import * as argparse from "argparse"
 import * as buildNumGen from "build-number-generator"
 import SemVerHandler from "../SemVerHandler"
 
@@ -53,7 +54,7 @@ class FastlaneProvider implements BumpProvider {
                 options: {
                     dest: "bump",
                     action: OverwriteDestinationAction,
-                    nargs: "?",
+                    nargs: argparse.Const.OPTIONAL,
                     type: "int",
                     help: "Incrementing the build number of current version"
                 }
@@ -71,7 +72,7 @@ class FastlaneProvider implements BumpProvider {
                 flags: [FastlaneProvider.FastlaneSwitches.message],
                 options: {
                     type: "string",
-                    nargs: "?",
+                    nargs: argparse.Const.OPTIONAL,
                     help: "Specify version bump commit message"
                 }
             },
@@ -79,7 +80,7 @@ class FastlaneProvider implements BumpProvider {
                 flags: [FastlaneProvider.FastlaneSwitches.xcodeproj],
                 options: {
                     type: "string",
-                    nargs: "?",
+                    nargs: argparse.Const.OPTIONAL,
                     help: "Specify main project"
                 }
             }
