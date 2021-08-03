@@ -2,7 +2,6 @@ import { spawnSync } from "child_process"
 import _ from "lodash"
 import which from "which"
 import * as argparse from "argparse"
-import * as buildNumGen from "build-number-generator"
 import SemVerHandler from "../SemVerHandler"
 
 import OverwriteDestinationAction from "../OverwriteDestinationAction"
@@ -104,12 +103,15 @@ class FastlaneProvider implements BumpProvider {
     }
 
     private handleIncreaseBuildVersion(value: string | boolean) {
+        let buildNumberParam: string
         if (typeof value == "boolean") {
-            value = buildNumGen.generate()
+            buildNumberParam = "build_number"
+        } else {
+            buildNumberParam = `build_number:${value}`
         }
         const command = spawnSync(
             "fastlane",
-            ["run", "increment_build_number", `build_number:${value}`],
+            ["run", "increment_build_number", buildNumberParam],
             { stdio: "inherit" }
         )
         if (command.error || command.status != StatusCode.ExitSuccess) {
